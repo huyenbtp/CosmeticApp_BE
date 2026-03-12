@@ -1,35 +1,35 @@
 const express = require("express");
 const router = express.Router();
 
-const ImportDetailController = require("../controllers/ImportItemController");
+const OrderItemController = require("../controllers/OrderItemController");
 
-router.post("/", ImportDetailController.create);
-router.get("/", ImportDetailController.getAll);
-router.get("/:id", ImportDetailController.getById);
-router.put("/:id", ImportDetailController.update);
-router.delete("/:id", ImportDetailController.delete);
+router.post("/", OrderItemController.create);
+router.get("/", OrderItemController.getAll);
+router.get("/:id", OrderItemController.getById);
+router.put("/:id", OrderItemController.update);
+router.delete("/:id", OrderItemController.delete);
 
 module.exports = router;
 
 /**
  * @openapi
- * /api/import-details:
+ * /api/order-items:
  *   get:
- *     summary: Get all import details
+ *     summary: Get all order items
  *     tags:
- *       - Import Details
+ *       - Order Items
  *     responses:
  *       200:
- *         description: List of import details
+ *         description: List of order items
  */
 
 /**
  * @openapi
- * /api/import-details:
+ * /order-items:
  *   post:
- *     summary: Create a new import detail
+ *     summary: Create a new order item
  *     tags:
- *       - Import Details
+ *       - Order Items
  *     requestBody:
  *       required: true
  *       content:
@@ -37,32 +37,35 @@ module.exports = router;
  *           schema:
  *             type: object
  *             properties:
- *               import_id:
+ *               order_id:
  *                 type: string
  *               product_id:
  *                 type: string
- *               unit_price:
- *                 type: number
+ *               product_name:
+ *                 type: string
+ *                 maxLength: 100
  *               quantity:
  *                 type: number
  *                 default: 1
+ *               price:
+ *                 type: number
  *     responses:
  *       201:
- *         description: Import detail created
+ *         description: Order item created
  */
 
 /**
  * @openapi
- * /api/import-details/{id}:
+ * /order-items/{id}:
  *   put:
- *     summary: Update import detail information
+ *     summary: Update order item information
  *     tags:
- *       - Import Details
+ *       - Order Items
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: Id of the import detail to be updated
+ *         description: Id of the order item to be updated
  *         schema:
  *           type: string
  *     requestBody:
@@ -72,34 +75,37 @@ module.exports = router;
  *           schema:
  *             type: object
  *             properties:
- *               import_id:
+ *               order_id:
  *                 type: string
  *               product_id:
  *                 type: string
- *               unit_price:
- *                 type: number
+ *               product_name:
+ *                 type: string
+ *                 maxLength: 100
  *               quantity:
+ *                 type: number
+ *               price:
  *                 type: number
  *     responses:
  *       200:
- *         description: Import detail updated
+ *         description: Order item updated
  */
 
 /**
  * @openapi
- * /api/import-details/{id}:
+ * /order-items/{id}:
  *   delete:
- *     summary: Delete import detail
+ *     summary: Delete order item
  *     tags:
- *       - Import Details
+ *       - Order Items
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: Id of the import detail to be deleted
+ *         description: Id of the order item to be deleted
  *         schema:
  *           type: string
  *     responses:
  *       200:
- *         description: Import detail deleted
+ *         description: Order item deleted
  */

@@ -108,7 +108,7 @@ module.exports = router;
  *           schema:
  *             type: object
  *             properties:
- *               accountId:
+ *               userId:
  *                 type: string
  *               newPassword:
  *                 type: string

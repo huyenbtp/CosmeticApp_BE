@@ -1,8 +1,7 @@
 const mongoose = require("mongoose");
 const Order = require("../models/Order");
-const OrderDetail = require("../models/OrderDetail");
+const OrderItem = require("../models/OrderItem");
 const Customer = require("../models/Customer");
-const DiscountUsage = require("../models/DiscountUsage");
 const generateCode = require("../utils/codeGenerator");
 
 const DiscountCodeService = require("./DiscountCodeService");
@@ -21,7 +20,7 @@ const OrderService = {
         discount_id = null,
         items,
         points_used = 0,
-        note = "",
+        notes = "",
       } = data;
       /**
          * items: [
@@ -94,7 +93,7 @@ const OrderService = {
             points_used,
             total_estimated: estimatedTotal,
             total_paid: 0,
-            note,
+            notes,
             payment_status: "unpaid",
           },
         ],
@@ -102,14 +101,14 @@ const OrderService = {
       );
 
       /* ---------- TẠO ORDER DETAILS ---------- */
-      const orderDetails = items.map(item => ({
+      const orderItems = items.map(item => ({
         order_id: order._id,
         product_id: item.product_id,
         unit_price: item.unit_price,
         quantity: item.quantity,
       }));
 
-      await OrderDetail.insertMany(orderDetails, { session });
+      await OrderItem.insertMany(orderItems, { session });
 
       /* ---------- TRỪ STOCK ---------- */
       await ProductService.validateAndDeduct(items, session);
@@ -163,19 +162,6 @@ const OrderService = {
 
         discountCode.used_count += 1;
         await discountCode.save({ session });
-
-        await DiscountUsage.create(
-          [
-            {
-              discount_id: order.discount_id,
-              order_id,
-              staff_id: order.cashier_id,
-              customer_id: order.customer_id,
-              discount_value: order.discount_amount,
-            },
-          ],
-          { session }
-        );
       }
 
       /* ---------- UPDATE ORDER ---------- */
@@ -204,13 +190,13 @@ const OrderService = {
     return await Order.findById(id);
   },
 
-  async updateOrderNote(id, note) {
+  async updateOrderNotes(id, notes) {
     const order = await Order.findById(id);
     if (!order) {
       throw new Error("Order not found");
     }
 
-    order.note = note;
+    order.notes = notes;
     await order.save();
 
     return order;

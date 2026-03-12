@@ -1,8 +1,8 @@
 const Product = require("../models/Product");
 const Category = require("../models/Category");
 const Brand = require("../models/Brand");
-const OrderDetail = require("../models/OrderDetail");
-const ImportDetail = require("../models/ImportDetail");
+const OrderItem = require("../models/OrderItem");
+const ImportItem = require("../models/ImportItem");
 const cloudinary = require("../config/cloudinary");
 const getPublicIdFromUrl = require("../utils/getImagePublicId");
 const mongoose = require("mongoose");
@@ -306,7 +306,7 @@ const ProductService = {
     if (!product) return null;
 
     /* ---------- TOTAL SOLD & REVENUE ---------- */
-    const sales = await OrderDetail.aggregate([
+    const sales = await OrderItem.aggregate([
       { $match: { product_id: product._id } },
       {
         $group: {
@@ -318,7 +318,7 @@ const ProductService = {
     ]);
 
     /* ---------- LAST IMPORT DATE ---------- */
-    const lastImport = await ImportDetail.findOne(
+    const lastImport = await ImportItem.findOne(
       { product_id: product._id },
       {},
       { sort: { createdAt: -1 } }

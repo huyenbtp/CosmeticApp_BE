@@ -2,10 +2,10 @@ const mongoose = require("mongoose");
 
 const PointTransactionSchema = new mongoose.Schema(
   {
-    customer_id: {
+    user_id: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: 'Customer'
+      ref: 'User'
     },
     order_id: {
       type: mongoose.Schema.Types.ObjectId,

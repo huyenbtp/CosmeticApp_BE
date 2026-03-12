@@ -2,10 +2,10 @@ const mongoose = require("mongoose");
 
 const StaffSchema = new mongoose.Schema(
   {
-    account_id: {
+    user_id: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: 'Account'
+      ref: 'User'
     },
     staff_code: {
       type: String,
@@ -31,8 +31,7 @@ const StaffSchema = new mongoose.Schema(
     },
     position: {
       type: String,
-      enum: ["cashier", "admin"],
-      default: "cashier"
+      default: ""
     },
     status: {
       type: String,

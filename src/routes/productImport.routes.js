@@ -113,7 +113,7 @@ module.exports = router;
  *             required:
  *               - items
  *             properties:
- *               note:
+ *               notes:
  *                 type: string
  *                 example: "Nhập hàng đầu tháng"
  *               items:
@@ -142,9 +142,9 @@ module.exports = router;
 
 /**
  * @openapi
- * /api/product-imports/{id}/note:
+ * /api/product-imports/{id}/notes:
  *   patch:
- *     summary: Update product import note
+ *     summary: Update product import notes
  *     tags:
  *       - Product Imports
  *     parameters:

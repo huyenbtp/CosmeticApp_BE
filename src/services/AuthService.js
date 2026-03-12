@@ -1,29 +1,29 @@
-const Account = require("../models/Account");
+const User = require("../models/User");
 const Staff = require("../models/Staff");
 const { comparePassword, hashPassword } = require("../utils/hash");
 const { signToken } = require("../utils/jwt");
 
 const AuthService = {
   async login({ username, password }) {
-    const account = await Account.findOne({ username });
-    if (!account) throw new Error("Username does not exist");
+    const user = await User.findOne({ username });
+    if (!user) throw new Error("Username does not exist");
 
-    if (account.status === "inactive")
-      throw new Error("Account is inactive");
+    if (user.status === "inactive")
+      throw new Error("User is inactive");
 
-    const isMatch = await comparePassword(password, account.password_hash);
+    const isMatch = await comparePassword(password, user.password_hash);
     if (!isMatch) throw new Error("Wrong password");
 
-    const staff = await Staff.findOne({ account_id: account._id });
+    const staff = await Staff.findOne({ user_id: user._id });
 
     const token = signToken({
-      accountId: account._id.toString(),
-      role: account.role
+      userId: user._id.toString(),
+      role: user.role
     });
 
     return {
       token,
-      role: account.role,
+      role: user.role,
       user: {
         _id: staff._id,
         full_name: staff.full_name,
@@ -33,27 +33,27 @@ const AuthService = {
     };
   },
 
-  async changePassword(accountId, oldPass, newPass) {
-    const acc = await Account.findById(accountId);
-    if (!acc) throw new Error("Account not found");
+  async changePassword(userId, oldPass, newPass) {
+    const user = await User.findById(userId);
+    if (!user) throw new Error("User not found");
 
-    const isMatch = await comparePassword(oldPass, acc.password);
+    const isMatch = await comparePassword(oldPass, user.password);
     if (!isMatch) throw new Error("The old password is incorrect.");
 
     if (oldPass === newPass) {
       throw new Error("The new password cannot be the same as the old password.");
     }
 
-    acc.password = await hashPassword(newPass);
-    await acc.save();
+    user.password = await hashPassword(newPass);
+    await user.save();
   },
 
-  async resetPassword(accountId, newPass) {
-    const account = await Account.findById(accountId);
-    if (!account) throw new Error("Account not found");
+  async resetPassword(userId, newPass) {
+    const user = await User.findById(userId);
+    if (!user) throw new Error("User not found");
 
-    account.password = await hashPassword(newPass);
-    await account.save();
+    user.password = await hashPassword(newPass);
+    await user.save();
   }
 }
 

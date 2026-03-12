@@ -32,8 +32,7 @@ module.exports = router;
  *   post:
  *     summary: Create a new order
  *     description: >
- *       Create a new order.  
- *       customer_id can be null for walk-in (guest) customers.
+ *       Create a new order.
  *     tags:
  *       - Orders
  *     requestBody:
@@ -45,10 +44,9 @@ module.exports = router;
  *             required:
  *               - items
  *             properties:
- *               customer_id:
+ *               user_id:
  *                 type: string
- *                 nullable: true
- *                 description: Customer ID (null for walk-in customer)
+ *                 description: Customer's user ID
  *                 example: 64fa12abc1234567890defab
  *               discount_id:
  *                 type: string
@@ -59,7 +57,7 @@ module.exports = router;
  *                 type: number
  *                 minimum: 0
  *                 example: 100
- *               note:
+ *               notes:
  *                 type: string
  *                 example: Customer wants quick checkout
  *               items:
@@ -154,8 +152,6 @@ module.exports = router;
  *             properties:
  *               order_code:
  *                 type: string
- *               cashier_id:
- *                 type: string
  *               discount_amount:
  *                 type: number
  *               customer_id:
@@ -172,7 +168,7 @@ module.exports = router;
  *                 type: string
  *               payment_status:
  *                 type: string
- *               note:
+ *               notes:
  *                 type: string
  *     responses:
  *       200:

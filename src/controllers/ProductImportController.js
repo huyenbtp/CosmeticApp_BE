@@ -7,7 +7,7 @@ class ProductImportController {
       const { note, items } = req.body;
 
       /* ---------- BASIC VALIDATION ---------- */
-      const staff = await Staff.findOne({ account_id: req.user.accountId });
+      const staff = await Staff.findOne({ user_id: req.user.user_id });
 
       if (!staff) {
         throw new Error("Staff not found");

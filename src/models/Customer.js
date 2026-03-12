@@ -2,10 +2,24 @@ const mongoose = require("mongoose");
 
 const CustomerSchema = new mongoose.Schema(
   {
-    name: {
+    user_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: 'User'
+    },
+    full_name: {
       type: String,
       required: true,
       maxlength: 50
+    },
+    gender: {
+      type: String,
+      enum: ["male", "female"],
+      default: "male"
+    },
+    dob: {
+      type: Date,
+      default: Date.now
     },
     phone: {
       type: String,

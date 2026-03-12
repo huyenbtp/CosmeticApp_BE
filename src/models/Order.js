@@ -7,10 +7,10 @@ const OrderSchema = new mongoose.Schema(
       required: true,
       unique: true
     },
-    customer_id: {
+    user_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Customer",
-      default: null
+      required: true,
+      ref: "User"
     },
     discount_id: {
       type: mongoose.Schema.Types.ObjectId,
@@ -43,15 +43,20 @@ const OrderSchema = new mongoose.Schema(
     },
     payment_method: {
       type: String,
-      enum: ["cash", "bank_transfer"],
-      default: "cash"
+      enum: ["cod", "bank_transfer"],
+      default: "cod"
     },
     payment_status: {
       type: String,
       enum: ["paid", "unpaid"],
       default: 'unpaid'
     },
-    note: {
+    order_status: {
+      type: String,
+      enum: ["pending", "confirmed", "shipping", "delivered", "cancelled", "returned"],
+      default: 'pending'
+    },
+    notes: {
       type: String,
       default: ''
     }

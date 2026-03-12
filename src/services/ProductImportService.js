@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const ProductImport = require("../models/ProductImport");
-const ImportDetail = require("../models/ImportDetail");
+const ImportItem = require("../models/ImportItem");
 const Product = require("../models/Product");
 const generateCode = require("../utils/codeGenerator");
 
@@ -10,7 +10,7 @@ const ProductImportService = {
     session.startTransaction();
 
     try {
-      const { staff_id, note = "", items } = data;
+      const { staff_id, notes = "", items } = data;
       /**
          * items: [
          *   { product_id, unit_price, quantity }
@@ -40,24 +40,24 @@ const ProductImportService = {
       /* ---------- TẠO IMPORT ---------- */
       const productImport = await ProductImport.create([{
         import_code: importCode,
-        staff_id,
+        created_by: staff_id,
         total_amount: totalAmount,
         items_imported: totalItems,
         products_updated: items.length,
-        note,
+        notes,
       }], { session });
 
       const importId = productImport[0]._id;
 
-      /* ---------- TẠO IMPORT DETAILS + UPDATE STOCK ---------- */
+      /* ---------- TẠO IMPORT ITEMS + UPDATE STOCK ---------- */
       for (const item of items) {
         const product = await Product.findById(item.product_id).session(session);
         if (!product) {
           throw new Error("Product not found");
         }
 
-        // create import detail
-        await ImportDetail.create([{
+        // create import item
+        await ImportItem.create([{
           import_id: importId,
           product_id: item.product_id,
           unit_price: item.unit_price,
@@ -207,7 +207,7 @@ const ProductImportService = {
       throw new Error("Import not found");
     }
 
-    const details = await ImportDetail.find({ import_id: id })
+    const details = await ImportItem.find({ import_id: id })
       .populate("product_id", "name sku image")
       .lean();
 

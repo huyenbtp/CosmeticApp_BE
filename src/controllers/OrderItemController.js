@@ -1,10 +1,10 @@
-const OrderDetailService = require("../services/OrderDetailService");
+const OrderItemService = require("../services/OrderItemService");
 
-class OrderDetailController {
+class OrderItemController {
   async create(req, res) {
     try {
-      const orderdetail = await OrderDetailService.createOrderDetail(req.body);
-      res.status(201).json(orderdetail);
+      const orderItem = await OrderItemService.createOrderItem(req.body);
+      res.status(201).json(orderItem);
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
@@ -12,8 +12,8 @@ class OrderDetailController {
 
   async getAll(req, res) {
     try {
-      const orderdetails = await OrderDetailService.getAllOrderDetails();
-      res.json(orderdetails);
+      const orderItems = await OrderItemService.getAllOrderItems();
+      res.json(orderItems);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -21,11 +21,11 @@ class OrderDetailController {
 
   async getById(req, res) {
     try {
-      const orderdetail = await OrderDetailService.getOrderDetailById(req.params.id);
+      const orderItem = await OrderItemService.getOrderItemById(req.params.id);
 
-      if (!orderdetail) return res.status(404).json({ message: "OrderDetail not found" });
+      if (!orderItem) return res.status(404).json({ message: "OrderItem not found" });
 
-      res.json(orderdetail);
+      res.json(orderItem);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -33,9 +33,9 @@ class OrderDetailController {
 
   async update(req, res) {
     try {
-      const updated = await OrderDetailService.updateOrderDetail(req.params.id, req.body);
+      const updated = await OrderItemService.updateOrderItem(req.params.id, req.body);
 
-      if (!updated) return res.status(404).json({ message: "OrderDetail not found" });
+      if (!updated) return res.status(404).json({ message: "Order item not found" });
 
       res.json(updated);
     } catch (error) {
@@ -45,15 +45,15 @@ class OrderDetailController {
 
   async delete(req, res) {
     try {
-      const deleted = await OrderDetailService.deleteOrderDetail(req.params.id);
+      const deleted = await OrderItemService.deleteOrderItem(req.params.id);
 
-      if (!deleted) return res.status(404).json({ message: "OrderDetail not found" });
+      if (!deleted) return res.status(404).json({ message: "Order item not found" });
 
-      res.json({ message: "OrderDetail deleted" });
+      res.json({ message: "Order item deleted" });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   }
 }
 
-module.exports = new OrderDetailController();
+module.exports = new OrderItemController();

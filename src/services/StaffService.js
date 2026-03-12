@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Staff = require("../models/Staff");
-const Account = require("../models/Account");
+const Account = require("../models/User");
 const { hashPassword } = require("../utils/hash");
 const generateCode = require("../utils/codeGenerator");
 const cloudinary = require("../config/cloudinary");

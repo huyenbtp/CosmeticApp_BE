@@ -1,10 +1,10 @@
-const ImportDetailService = require("../services/ImportDetailService");
+const ImportItemService = require("../services/ImportItemService");
 
-class ImportDetailController {
+class ImportItemController {
   async create(req, res) {
     try {
-      const importDetail = await ImportDetailService.createImportDetail(req.body);
-      res.status(201).json(importDetail);
+      const importItem = await ImportItemService.createImportItem(req.body);
+      res.status(201).json(importItem);
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
@@ -12,8 +12,8 @@ class ImportDetailController {
 
   async getAll(req, res) {
     try {
-      const importDetails = await ImportDetailService.getAllImportDetails();
-      res.json(importDetails);
+      const importItems = await ImportItemService.getAllImportItems();
+      res.json(importItems);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -21,11 +21,11 @@ class ImportDetailController {
 
   async getById(req, res) {
     try {
-      const importDetail = await ImportDetailService.getImportDetailById(req.params.id);
+      const importItem = await ImportItemService.getImportItemById(req.params.id);
 
-      if (!importDetail) return res.status(404).json({ message: "ImportDetail not found" });
+      if (!importItem) return res.status(404).json({ message: "Import item not found" });
 
-      res.json(importDetail);
+      res.json(importItem);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -33,9 +33,9 @@ class ImportDetailController {
 
   async update(req, res) {
     try {
-      const updated = await ImportDetailService.updateImportDetail(req.params.id, req.body);
+      const updated = await ImportItemService.updateImportItem(req.params.id, req.body);
 
-      if (!updated) return res.status(404).json({ message: "ImportDetail not found" });
+      if (!updated) return res.status(404).json({ message: "Import item not found" });
 
       res.json(updated);
     } catch (error) {
@@ -45,15 +45,15 @@ class ImportDetailController {
 
   async delete(req, res) {
     try {
-      const deleted = await ImportDetailService.deleteImportDetail(req.params.id);
+      const deleted = await ImportItemService.deleteImportItem(req.params.id);
 
-      if (!deleted) return res.status(404).json({ message: "ImportDetail not found" });
+      if (!deleted) return res.status(404).json({ message: "Import item not found" });
 
-      res.json({ message: "ImportDetail deleted" });
+      res.json({ message: "Import item deleted" });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   }
 }
 
-module.exports = new ImportDetailController();
+module.exports = new ImportItemController();

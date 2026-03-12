@@ -23,9 +23,6 @@ const OrderDetailSchema = new mongoose.Schema(
       min: 0,
     }
   },
-  {
-    timestamps: true, // tự tạo createdAt + updatedAt
-  }
 );
 
 module.exports = mongoose.model("OrderDetail", OrderDetailSchema);

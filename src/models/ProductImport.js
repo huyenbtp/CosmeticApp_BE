@@ -7,12 +7,12 @@ const ProductImportSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    staff_id: {
+    created_by: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: 'Staff',
+      ref: 'User',
     },
-    total_amount: {
+    products_updated: {
       type: Number,
       required: true,
       min: 0
@@ -22,12 +22,12 @@ const ProductImportSchema = new mongoose.Schema(
       required: true,
       min: 0
     },
-    products_updated: {
+    total_amount: {
       type: Number,
       required: true,
       min: 0
     },
-    note: {
+    notes: {
       type: String,
       default: ""
     },

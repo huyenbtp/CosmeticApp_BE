@@ -1,9 +1,9 @@
-const ImportDetail = require("../models/ImportDetail");
+const ImportItem = require("../models/ImportItem");
 const Product = require("../models/Product");
 
-class ImportDetailService {
-  async getImportDetailByImportId(importId) {
-    return await ImportDetail.find({ import_id: importId })
+class ImportItemService {
+  async getImportItemByImportId(importId) {
+    return await ImportItem.find({ import_id: importId })
       .populate("product_id", "sku name image")
       .sort({ createdAt: 1 });
   }
@@ -21,7 +21,7 @@ class ImportDetailService {
         throw new Error("Product not found");
       }
 
-      await ImportDetail.create(
+      await ImportItem.create(
         [
           {
             import_id: importId,
@@ -49,17 +49,17 @@ class ImportDetailService {
     };
   }
 
-  async updateImportDetail(id, updateData) {
-    return await ImportDetail.findByIdAndUpdate(
+  async updateImportItem(id, updateData) {
+    return await ImportItem.findByIdAndUpdate(
       id,
       updateData,
       { new: true }
     );
   }
 
-  async deleteImportDetail(id) {
-    return await ImportDetail.findByIdAndDelete(id);
+  async deleteImportItem(id) {
+    return await ImportItem.findByIdAndDelete(id);
   }
 }
 
-module.exports = new ImportDetailService();
+module.exports = new ImportItemService();
