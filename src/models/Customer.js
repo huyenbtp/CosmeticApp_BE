@@ -17,20 +17,11 @@ const CustomerSchema = new mongoose.Schema(
       enum: ["male", "female"],
       default: "male"
     },
-    dob: {
-      type: Date,
-      default: Date.now
-    },
     phone: {
       type: String,
       required: true,
       unique: true,
       maxlength: 10
-    },
-    points: {
-      type: Number,
-      default: 0,
-      min: 0,
     },
   },
   {
