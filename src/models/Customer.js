@@ -14,13 +14,12 @@ const CustomerSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
-      enum: ["male", "female"],
+      enum: ["male", "female", "other"],
       default: "male"
     },
     phone: {
       type: String,
       required: true,
-      unique: true,
       maxlength: 10
     },
   },

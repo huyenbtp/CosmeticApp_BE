@@ -5,6 +5,8 @@ const requireRole = require("../middleware/checkPermission");
 
 const AuthController = require("../controllers/AuthController");
 
+router.post("/register-customer", AuthController.registerCustomer);
+router.get("/verify-email", AuthController.verifyEmail);
 router.post("/login", AuthController.login);
 router.post("/logout", AuthController.logout);
 router.post("/change-password", auth, AuthController.changePassword);
@@ -16,6 +18,67 @@ router.post(
 );
 
 module.exports = router;
+/**
+ * @openapi
+ * /api/auth/register-customer:
+ *   post:
+ *     summary: Register a new customer account
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *               - full_name
+ *               - phone
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: user@gmail.com
+ *               password:
+ *                 type: string
+ *                 example: 123456
+ *               full_name:
+ *                 type: string
+ *                 example: Nguyen Van A
+ *               gender:
+ *                 type: string
+ *                 enum: [male, female, other]
+ *                 example: male
+ *               phone:
+ *                 type: string
+ *                 example: "0912345678"
+ *     responses:
+ *       201:
+ *         description: Registration successful, please check email to verify account
+ *       400:
+ *         description: Invalid input or email already exists
+ */
+/**
+ * @openapi
+ * /api/auth/verify-email:
+ *   get:
+ *     summary: Verify user email
+ *     tags:
+ *       - Auth
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: JWT token sent via email
+ *     responses:
+ *       200:
+ *         description: Email verified successfully
+ *       400:
+ *         description: Invalid or expired token
+ */
 
 /**
  * @openapi

@@ -14,13 +14,13 @@ const orderItemRoutes = require("./routes/orderItem.routes.js");
 const orderRoutes = require("./routes/order.routes.js");
 const productImportRoutes = require("./routes/productImport.routes.js");
 const productRoutes = require("./routes/product.routes.js");
+const roleRoutes = require("./routes/role.routes.js");
 const staffRoutes = require("./routes/staff.routes.js");
 
 
 const app = express();
 app.use(cors({
-  origin: "http://localhost:3000",
-  credentials: true,
+  origin: "*"
 }));
 app.use(express.json());
 app.use(cookieParser());
@@ -37,6 +37,7 @@ app.use("/api/order-items", orderItemRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/product-imports", productImportRoutes);
+app.use("/api/roles", roleRoutes);
 app.use("/api/staffs", staffRoutes);
 
 module.exports = app;

@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema(
   {
-    username: {
+    email: {
       type: String,
       required: true,
       unique: true,
@@ -11,15 +11,18 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    role: {
-      type: String,
-      enum: ["cashier", "admin"],
-      default: "cashier"
+    role_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: 'Role'
     },
-    status: {
-      type: String,
-      enum: ["active", "inactive"],
-      default: "active"
+    is_active: {
+      type: Boolean,
+      default: true,
+    },
+    is_verified: {
+      type: Boolean,
+      default: false
     },
   },
   {

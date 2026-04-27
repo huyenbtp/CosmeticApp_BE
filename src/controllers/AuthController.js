@@ -1,6 +1,32 @@
 const AuthService = require("../services/AuthService");
 
 const AuthController = {
+  async registerCustomer(req, res) {
+    try {
+      const user = await AuthService.registerCustomer(req.body);
+      res.status(201).json({
+        message: "Check your email to verify account"
+      });
+    } catch (e) {
+      res.status(400).json({ message: e.message });
+    }
+  },
+
+  async verifyEmail(req, res) {
+    try {
+      const { token } = req.query;
+      if (!token) {
+        return res.status(400).json({ message: "Token is required" });
+      }
+
+      await AuthService.verifyEmail(req.query.token);
+
+      res.json({ message: "Email verified" });
+    } catch (e) {
+      res.status(400).json({ message: e.message });
+    }
+  },
+
   async login(req, res) {
     try {
       const { username, password } = req.body;
