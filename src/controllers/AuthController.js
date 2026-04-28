@@ -1,4 +1,6 @@
 const AuthService = require("../services/AuthService");
+const { getSuccessHTML } = require("../utils/html/verifySuccess.js");
+const { getErrorHTML } = require("../utils/html/verifyError.js");
 
 const AuthController = {
   async registerCustomer(req, res) {
@@ -13,15 +15,34 @@ const AuthController = {
   },
 
   async verifyEmail(req, res) {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).send(getErrorHTML("Token is required"));
+    }
+
     try {
-      const { token } = req.query;
-      if (!token) {
-        return res.status(400).json({ message: "Token is required" });
+      await AuthService.verifyEmail(token);
+
+      return res.send(getSuccessHTML());
+
+    } catch (e) {
+      return res.status(400).send(getErrorHTML(e.message));
+    }
+  },
+
+  async resendVerification(req, res) {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
       }
 
-      await AuthService.verifyEmail(req.query.token);
+      const result = await AuthService.resendVerification(email);
 
-      res.json({ message: "Email verified" });
+      res.status(200).json(result);
+
     } catch (e) {
       res.status(400).json({ message: e.message });
     }
@@ -29,27 +50,37 @@ const AuthController = {
 
   async login(req, res) {
     try {
-      const { username, password } = req.body;
-      const { token, role, user } = await AuthService.login({
-        username,
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({
+          message: "Email and password are required"
+        });
+      }
+
+      const { token, user, profile } = await AuthService.login({
+        email,
         password
       });
 
       res.cookie("auth_token", token, {
-        httpOnly: false,
+        httpOnly: true,
+        secure: true,
         sameSite: "lax",
         path: "/",
       });
 
-      res.cookie("auth_role", role, {
-        httpOnly: false,
+      res.cookie("auth_role", user.role, {
+        httpOnly: true,
+        secure: true,
         sameSite: "lax",
         path: "/",
       });
 
       res.json({
-        role,
+        access_token: token,
         user,
+        profile,
       });
     } catch (e) {
       res.status(400).json({ message: e.message });

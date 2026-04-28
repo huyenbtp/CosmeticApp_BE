@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-export const sendMail = async ({ to, subject, text }) => {
+export const sendMail = async ({ to, subject, html }) => {
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -9,5 +9,10 @@ export const sendMail = async ({ to, subject, text }) => {
     }
   });
 
-  await transporter.sendMail({ to, subject, text });
+  await transporter.sendMail({
+    from: `"Skintify" <${process.env.MAIL_USER}>`,
+    to,
+    subject,
+    html
+  });
 };

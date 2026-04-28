@@ -7,6 +7,7 @@ const AuthController = require("../controllers/AuthController");
 
 router.post("/register-customer", AuthController.registerCustomer);
 router.get("/verify-email", AuthController.verifyEmail);
+router.post("/resend-verification", AuthController.resendVerification);
 router.post("/login", AuthController.login);
 router.post("/logout", AuthController.logout);
 router.post("/change-password", auth, AuthController.changePassword);
@@ -82,6 +83,36 @@ module.exports = router;
 
 /**
  * @openapi
+ * /api/auth/resend-verification:
+ *   post:
+ *     summary: Resend verification email
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: user@gmail.com
+ *     responses:
+ *       200:
+ *         description: Verification email resent successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: Verification email resent
+ *       400:
+ *         description: Invalid request or email already verified
+ */
+
+/**
+ * @openapi
  * /api/auth/login:
  *   post:
  *     summary: Log in
@@ -95,13 +126,12 @@ module.exports = router;
  *           schema:
  *             type: object
  *             required:
- *               - username
+ *               - email
  *               - password
  *             properties:
- *               username:
+ *               email:
  *                 type: string
- *                 format: username
- *                 example: johndoe
+ *                 example: user@gmail.com
  *               password:
  *                 type: string
  *                 format: password
@@ -109,6 +139,8 @@ module.exports = router;
  *     responses:
  *       200:
  *         description: Log in successfully
+ *       400:
+ *         description: Invalid email or password
  */
 
 /**
