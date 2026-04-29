@@ -15,21 +15,21 @@ const StaffService = {
     page,
     limit,
     q = "",
-    staffStatus,
-    role,
-    userStatus,
+    status,
+    role_id,
+    is_active,
   }) {
-    //console.log(page, limit, q, staffStatus, role, userStatus)
+    //console.log(page, limit, q, status, role_id, is_active)
     const skip = (page - 1) * limit;
 
     /* ---------- STAFF FILTER ---------- */
     const staffFilter = {};
-    if (staffStatus) staffFilter.status = staffStatus;
+    if (status) staffFilter.status = status;
 
     /* ---------- ACCOUNT FILTER ---------- */
     const userFilter = {};
-    if (role) userFilter["user.role"] = role;
-    if (userStatus) userFilter["user.status"] = userStatus;
+    if (role_id) userFilter["user.role_id"] = new mongoose.Types.ObjectId(role_id);
+    if (is_active !== undefined) userFilter["user.is_active"] = is_active === "true";
 
     /* ---------- SEARCH ---------- */
     const searchFilter = q
@@ -44,6 +44,7 @@ const StaffService = {
 
     /* ---------- AGGREGATE ---------- */
     const pipeline = [
+      { $match: { ...staffFilter, ...searchFilter } },
       {
         $lookup: {
           from: "users",
@@ -53,7 +54,16 @@ const StaffService = {
         },
       },
       { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
-      { $match: { ...staffFilter, ...userFilter, ...searchFilter } },
+      { $match: userFilter },
+      {
+        $lookup: {
+          from: "roles",
+          localField: "user.role_id",
+          foreignField: "_id",
+          as: "role",
+        },
+      },
+      { $unwind: { path: "$role", preserveNullAndEmptyArrays: true } },
       { $sort: { createdAt: -1 } },
       {
         $facet: {
@@ -65,12 +75,11 @@ const StaffService = {
                 staff_code: 1,
                 full_name: 1,
                 phone: 1,
-                position: 1,
                 user: {
                   _id: "$user._id",
                   email: "$user.email",
-                  role: "$user.role",
-                  status: "$user.status",
+                  role: "$role.name",
+                  is_active: "$user.is_active",
                 },
                 status: 1,
                 image: 1,
@@ -96,9 +105,11 @@ const StaffService = {
 
   async getById(id) {
     const staff = await Staff.findById(id)
-      .populate("user_id", "email role status createdAt updatedAt");
+      .populate("user_id", "email role_id is_active createdAt updatedAt")
 
     if (!staff) throw new Error("Staff not found");
+
+    const role = await Role.findById(staff.user_id.role_id);
 
     return {
       _id: staff._id,
@@ -107,7 +118,6 @@ const StaffService = {
       gender: staff.gender,
       dob: staff.dob,
       phone: staff.phone,
-      position: staff.position,
       image: staff.image,
       status: staff.status,
       createdAt: staff.createdAt,
@@ -116,8 +126,8 @@ const StaffService = {
         ? {
           _id: staff.user_id._id,
           email: staff.user_id.email,
-          role: staff.user_id.role,
-          status: staff.user_id.status,
+          role: role.name,
+          is_active: staff.user_id.is_active,
           updatedAt: staff.user_id.updatedAt,
         }
         : null,
@@ -126,9 +136,11 @@ const StaffService = {
 
   async getByIdToEdit(id, isAdmin = false) {
     const staff = await Staff.findById(id)
-      .populate("user_id", "role status");
+      .populate("user_id", "role_id is_active");
 
     if (!staff) throw new Error("Staff not found");
+
+    const role = await Role.findById(staff.user_id.role_id);
 
     return {
       full_name: staff.full_name,
@@ -138,11 +150,10 @@ const StaffService = {
       image: staff.image,
       ...(isAdmin && {
         status: staff.status,
-        position: staff.position,
         user: staff.user_id
           ? {
-            role: staff.user_id.role,
-            status: staff.user_id.status,
+            role: role.name,
+            is_active: staff.user_id.is_active,
           }
           : null,
       }),
@@ -256,7 +267,7 @@ const StaffService = {
       if (!user)
         throw new Error("User not found");
 
-      let { role, userStatus, staffStatus, image, ...staffData } = updateData;
+      let { role, is_active, image, ...staffData } = updateData;
 
       // image logic
       if ("image" in updateData) {
@@ -285,15 +296,14 @@ const StaffService = {
 
       // ===== UPDATE STAFF DATA =====
       Object.keys(staffData).forEach((key) => {
-        if (key !== "image" && key !== "staff_code" && key !== "staffStatus") {
+        if (key !== "image" && key !== "staff_code") {
           staff[key] = updateData[key];
         }
       });
-      if (staffStatus) staff.status = staffStatus;
 
       // ===== UPDATE ACCOUNT DATA =====
       if (role) user.role = role;
-      if (userStatus) user.status = userStatus;
+      if (is_active) user.is_active = is_active;
 
       await staff.save({ session });
       await user.save({ session });

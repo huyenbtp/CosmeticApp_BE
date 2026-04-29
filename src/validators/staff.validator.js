@@ -45,6 +45,15 @@ function validateCreateStaff(data) {
     throw new Error('Email is required');
   }
 
+  const normalizedEmail = email.trim().toLowerCase();
+
+  // regex email chuẩn (đủ dùng production)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!emailRegex.test(normalizedEmail)) {
+    throw new Error("Invalid email format");
+  }
+
   if (!password) {
     throw new Error('Password is required');
   }
@@ -60,7 +69,7 @@ function validateCreateStaff(data) {
 
 function validateUpdateStaff(data) {
   validateStaffBase(data);
-    console.log(data)
+  console.log(data)
 
   if ('staff_code' in data || 'email' in data || 'password' in data) {
     throw new Error('Staff code, email and password cannot be updated here');

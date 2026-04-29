@@ -99,7 +99,7 @@ const AuthController = {
   async changePassword(req, res) {
     try {
       await AuthService.changePassword(
-        req.user.accountId,
+        req.user.userId,
         req.body.oldPassword,
         req.body.newPassword
       );

@@ -8,18 +8,18 @@ const StaffController = {
         page,
         limit,
         q,
-        staffStatus,
-        role,
-        accountStatus,
+        status,
+        role_id,
+        is_active,
       } = req.query;
 
       const result = await StaffService.getStaffs({
         page: Number(page) || 1,
         limit: Number(limit) || 7,
         q,
-        staffStatus,
-        role,
-        accountStatus,
+        status,
+        role_id,
+        is_active,
       });
 
       res.json(result);

@@ -203,21 +203,21 @@ const AuthService = {
     const user = await User.findById(userId);
     if (!user) throw new Error("User not found");
 
-    const isMatch = await comparePassword(oldPass, user.password);
+    const isMatch = await comparePassword(oldPass, user.password_hash);
     if (!isMatch) throw new Error("The old password is incorrect.");
 
     if (oldPass === newPass) {
       throw new Error("The new password cannot be the same as the old password.");
     }
 
-    user.password = await hashPassword(newPass);
+    user.password_hash = await hashPassword(newPass);
     await user.save();
   },
 
   async sendResetPasswordEmail(email) {
     const user = await User.findOne({ email });
 
-    if (!user || user.is_verified) {
+    if (!user) {
       return {
         message: "If the email exists, a verification email has been sent"
       };
