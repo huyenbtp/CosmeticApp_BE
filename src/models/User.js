@@ -9,7 +9,7 @@ const UserSchema = new mongoose.Schema(
     },
     password_hash: {
       type: String,
-      required: true,
+      default: null
     },
     role_id: {
       type: mongoose.Schema.Types.ObjectId,

@@ -4,8 +4,7 @@ function validateStaffBase(data) {
     gender,
     dob,
     phone,
-    position,
-    staffStatus,
+    status,
   } = data;
 
   if (full_name !== undefined && !full_name.trim()) {
@@ -19,15 +18,11 @@ function validateStaffBase(data) {
     }
   }
 
-  if (gender && !['male', 'female'].includes(gender)) {
+  if (gender && !['male', 'female', 'other'].includes(gender)) {
     throw new Error('Invalid gender');
   }
 
-  if (position && !['admin', 'warehouse_manager', 'order_processing'].includes(position)) {
-    throw new Error('Invalid position');
-  }
-
-  if (staffStatus && !['active', 'on_leave', 'terminated'].includes(staffStatus)) {
+  if (status && !['active', 'on_leave', 'terminated'].includes(status)) {
     throw new Error('Invalid staff status');
   }
 
@@ -44,22 +39,18 @@ function validateStaffBase(data) {
 function validateCreateStaff(data) {
   validateStaffBase(data);
 
-  const { username, password } = data;
+  const { email, password } = data;
 
-  if (!username || !username.trim()) {
-    throw new Error('Username is required');
+  if (!email || !email.trim()) {
+    throw new Error('Email is required');
   }
 
   if (!password) {
     throw new Error('Password is required');
   }
 
-  if (username.length < 4 || /\s/.test(username)) {
-    throw new Error('Username must be at least 4 characters and contain no spaces');
-  }
-
-  if (password.length < 6) {
-    throw new Error('Password must be at least 6 characters');
+  if (password.length < 8) {
+    throw new Error('Password must be at least 8 characters');
   }
 }
 
@@ -67,8 +58,8 @@ function validateUpdateStaff(data) {
   validateStaffBase(data);
     console.log(data)
 
-  if ('staff_code' in data || 'username' in data || 'password' in data) {
-    throw new Error('Staff code, username and password cannot be updated here');
+  if ('staff_code' in data || 'email' in data || 'password' in data) {
+    throw new Error('Staff code, email and password cannot be updated here');
   }
 }
 

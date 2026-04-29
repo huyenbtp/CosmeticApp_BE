@@ -1,6 +1,9 @@
 const AuthService = require("../services/AuthService");
-const { getSuccessHTML } = require("../utils/html/verifySuccess.js");
-const { getErrorHTML } = require("../utils/html/verifyError.js");
+const { getVerifySuccessHTML } = require("../utils/html/verifySuccess.js");
+const { getVerifyErrorHTML } = require("../utils/html/verifyError.js");
+const { getSetPassFormHTML } = require("../utils/html/setPassword.js");
+const { getSetPassSuccessHTML } = require("../utils/html/setPasswordSuccess.js");
+const { getErrorHTML } = require("../utils/html/error.js");
 
 const AuthController = {
   async registerCustomer(req, res) {
@@ -18,16 +21,16 @@ const AuthController = {
     const { token } = req.query;
 
     if (!token) {
-      return res.status(400).send(getErrorHTML("Token is required"));
+      return res.status(400).send(getVerifyErrorHTML("Token is required"));
     }
 
     try {
       await AuthService.verifyEmail(token);
 
-      return res.send(getSuccessHTML());
+      return res.send(getVerifySuccessHTML());
 
     } catch (e) {
-      return res.status(400).send(getErrorHTML(e.message));
+      return res.status(400).send(getVerifyErrorHTML(e.message));
     }
   },
 
@@ -106,13 +109,44 @@ const AuthController = {
     }
   },
 
+  async forgotPassword(req, res) {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" }); // Nếu không có email, trả về lỗi 400
+    }
+
+    try {
+      const response = await AuthService.sendResetPasswordEmail(email); // Gọi service để gửi email
+      res.json(response); // Trả về phản hồi khi email đã được gửi
+    } catch (error) {
+      res.status(400).json({ error: error.message }); // Nếu có lỗi, trả về lỗi với mã 400
+    }
+  },
+
+  async getResetPasswordPage(req, res) {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).send(getErrorHTML("Invalid or missing token"));
+    }
+
+    return res.send(getSetPassFormHTML(token));
+  },
+
   async resetPassword(req, res) {
     try {
-      const { accountId, newPassword } = req.body;
-      await AuthService.resetPassword(accountId, newPassword);
-      res.json({ message: 'Password reset successfully' });
+      const { token, newPassword } = req.body;
+
+      if (!token || !newPassword) {
+        return res.status(400).json({ message: "Missing data" });
+      }
+
+      await AuthService.resetPassword(token, newPassword);
+
+      return res.send(getSuccessHTML());
     } catch (e) {
-      res.status(400).json({ message: e.message });
+      return res.status(400).send(getErrorHTML(e.message));
     }
   },
 }

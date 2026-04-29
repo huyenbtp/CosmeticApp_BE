@@ -11,17 +11,14 @@ router.post("/resend-verification", AuthController.resendVerification);
 router.post("/login", AuthController.login);
 router.post("/logout", AuthController.logout);
 router.post("/change-password", auth, AuthController.changePassword);
-router.post(
-  "/reset-password",
-  auth,
-  requireRole(["admin"]),
-  AuthController.resetPassword
-);
+router.post("/forgot-password", AuthController.forgotPassword);
+router.get("/reset-password", AuthController.getResetPasswordPage);
+router.post("/reset-password", AuthController.resetPassword);
 
 module.exports = router;
 /**
  * @openapi
- * /api/auth/register-customer:
+ * /auth/register-customer:
  *   post:
  *     summary: Register a new customer account
  *     tags:
@@ -60,9 +57,10 @@ module.exports = router;
  *       400:
  *         description: Invalid input or email already exists
  */
+
 /**
  * @openapi
- * /api/auth/verify-email:
+ * /auth/verify-email:
  *   get:
  *     summary: Verify user email
  *     tags:
@@ -83,7 +81,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /api/auth/resend-verification:
+ * /auth/resend-verification:
  *   post:
  *     summary: Resend verification email
  *     tags:
@@ -113,7 +111,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /api/auth/login:
+ * /auth/login:
  *   post:
  *     summary: Log in
  *     tags:
@@ -145,7 +143,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /api/auth/logout:
+ * /auth/logout:
  *   post:
  *     summary: Log out
  *     tags:
@@ -157,7 +155,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /api/auth/change-password:
+ * /auth/change-password:
  *   post:
  *     summary: Change account's password
  *     tags:
@@ -188,12 +186,11 @@ module.exports = router;
  *                   example: "The old password is incorrect."
  */
 
-
 /**
  * @openapi
- * /api/auth/reset-password:
+ * /auth/forgot-password:
  *   post:
- *     summary: Admin resets the account password for a staff who forgot their password.
+ *     summary: Send an email requesting a password change
  *     tags:
  *       - Auth
  *     requestBody:
@@ -203,7 +200,52 @@ module.exports = router;
  *           schema:
  *             type: object
  *             properties:
- *               userId:
+ *               email:
+ *                 type: string
+ *                 example: user@gmail.com
+ *     responses:
+ *       200:
+ *         description: The email has been successfully sent
+ *       400:
+ *         description: "Error during email sending process"
+ */
+
+/**
+ * @openapi
+ * /auth/reset-password:
+ *   get:
+ *     summary: Get password reset page
+ *     tags:
+ *       - Auth
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: JWT token sent via email
+ *     responses:
+ *       200:
+ *         description: Get password reset page successfully
+ *       400:
+ *         description: Invalid or expired token
+ */
+
+/**
+ * @openapi
+ * /auth/reset-password:
+ *   post:
+ *     summary: Reset account's password
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               token:
  *                 type: string
  *               newPassword:
  *                 type: string

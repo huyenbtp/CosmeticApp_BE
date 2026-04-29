@@ -7,6 +7,7 @@ const { comparePassword, hashPassword } = require("../utils/hash");
 const { signToken, verifyToken } = require("../utils/jwt");
 const { sendMail } = require("../utils/mailer.js");
 const { verifyEmailTemplate } = require("../utils/emailTemplates/verifyEmail.js");
+const { resetPasswordTemplate } = require("../utils/emailTemplates/resetPassword.js");
 
 const AuthService = {
   async registerCustomer({
@@ -169,7 +170,11 @@ const AuthService = {
     if (!user.is_verified) {
       throw new Error("Email not verified. Please check your email or resend verification.");
     }
-  
+
+    if (!user.password_hash) {
+      throw new Error("Please set your password via email");
+    }
+
     const token = signToken({
       userId: user._id.toString(),
       role: user.role_id.name
@@ -209,13 +214,59 @@ const AuthService = {
     await user.save();
   },
 
-  async resetPassword(userId, newPass) {
-    const user = await User.findById(userId);
+  async sendResetPasswordEmail(email) {
+    const user = await User.findOne({ email });
+
+    if (!user || user.is_verified) {
+      return {
+        message: "If the email exists, a verification email has been sent"
+      };
+    }
+
+    const token = signToken(
+      {
+        user_id: user._id,
+        type: "set_password"
+      },
+      "24h"
+    );
+
+    const link = `${process.env.CLIENT_URL}/auth/reset-password?token=${token}`;
+    const html = resetPasswordTemplate(link);
+
+    await sendMail({
+      to: user.email,
+      subject: "[Skintify] - Reset your password",
+      html
+    });
+
+    return { message: "Reset password email sent" };
+  },
+
+  async resetPassword(token, newPassword) {
+    let decoded;
+
+    try {
+      decoded = verifyToken(token);
+    } catch (err) {
+      throw new Error("Token invalid or expired");
+    }
+
+    if (!decoded || !decoded.user_id || decoded.type !== "set_password")
+      throw new Error("Invalid token");
+
+    const user = await User.findById(decoded.user_id);
+
     if (!user) throw new Error("User not found");
 
-    user.password = await hashPassword(newPass);
+    const hashed = await hashPassword(newPassword);
+
+    user.password_hash = hashed;
+
     await user.save();
-  }
+
+    return { message: "Password set successfully" };
+  },
 }
 
 module.exports = AuthService;

@@ -1,10 +1,14 @@
 const mongoose = require("mongoose");
+const User = require("../models/User");
 const Staff = require("../models/Staff");
-const Account = require("../models/User");
-const { hashPassword } = require("../utils/hash");
+const Role = require("../models/Role");
 const generateCode = require("../utils/codeGenerator");
 const cloudinary = require("../config/cloudinary");
 const getPublicIdFromUrl = require("../utils/getImagePublicId");
+const { hashPassword } = require("../utils/hash");
+const { signToken, verifyToken } = require("../utils/jwt");
+const { sendMail } = require("../utils/mailer.js");
+const { setStaffPasswordTemplate } = require("../utils/emailTemplates/setStaffPassword.js");
 
 const StaffService = {
   async getStaffs({
@@ -13,9 +17,9 @@ const StaffService = {
     q = "",
     staffStatus,
     role,
-    accountStatus,
+    userStatus,
   }) {
-    //console.log(page, limit, q, staffStatus, role, accountStatus)
+    //console.log(page, limit, q, staffStatus, role, userStatus)
     const skip = (page - 1) * limit;
 
     /* ---------- STAFF FILTER ---------- */
@@ -23,9 +27,9 @@ const StaffService = {
     if (staffStatus) staffFilter.status = staffStatus;
 
     /* ---------- ACCOUNT FILTER ---------- */
-    const accountFilter = {};
-    if (role) accountFilter["account.role"] = role;
-    if (accountStatus) accountFilter["account.status"] = accountStatus;
+    const userFilter = {};
+    if (role) userFilter["user.role"] = role;
+    if (userStatus) userFilter["user.status"] = userStatus;
 
     /* ---------- SEARCH ---------- */
     const searchFilter = q
@@ -42,14 +46,14 @@ const StaffService = {
     const pipeline = [
       {
         $lookup: {
-          from: "accounts",
-          localField: "account_id",
+          from: "users",
+          localField: "user_id",
           foreignField: "_id",
-          as: "account",
+          as: "user",
         },
       },
-      { $unwind: { path: "$account", preserveNullAndEmptyArrays: true } },
-      { $match: { ...staffFilter, ...accountFilter, ...searchFilter } },
+      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+      { $match: { ...staffFilter, ...userFilter, ...searchFilter } },
       { $sort: { createdAt: -1 } },
       {
         $facet: {
@@ -62,11 +66,11 @@ const StaffService = {
                 full_name: 1,
                 phone: 1,
                 position: 1,
-                account: {
-                  _id: "$account._id",
-                  username: "$account.username",
-                  role: "$account.role",
-                  status: "$account.status",
+                user: {
+                  _id: "$user._id",
+                  email: "$user.email",
+                  role: "$user.role",
+                  status: "$user.status",
                 },
                 status: 1,
                 image: 1,
@@ -92,7 +96,7 @@ const StaffService = {
 
   async getById(id) {
     const staff = await Staff.findById(id)
-      .populate("account_id", "username role status createdAt updatedAt");
+      .populate("user_id", "email role status createdAt updatedAt");
 
     if (!staff) throw new Error("Staff not found");
 
@@ -108,13 +112,13 @@ const StaffService = {
       status: staff.status,
       createdAt: staff.createdAt,
       updatedAt: staff.updatedAt,
-      account: staff.account_id
+      user: staff.user_id
         ? {
-          _id: staff.account_id._id,
-          username: staff.account_id.username,
-          role: staff.account_id.role,
-          status: staff.account_id.status,
-          updatedAt: staff.account_id.updatedAt,
+          _id: staff.user_id._id,
+          email: staff.user_id.email,
+          role: staff.user_id.role,
+          status: staff.user_id.status,
+          updatedAt: staff.user_id.updatedAt,
         }
         : null,
     };
@@ -122,7 +126,7 @@ const StaffService = {
 
   async getByIdToEdit(id, isAdmin = false) {
     const staff = await Staff.findById(id)
-      .populate("account_id", "role status");
+      .populate("user_id", "role status");
 
     if (!staff) throw new Error("Staff not found");
 
@@ -135,10 +139,10 @@ const StaffService = {
       ...(isAdmin && {
         status: staff.status,
         position: staff.position,
-        account: staff.account_id
+        user: staff.user_id
           ? {
-            role: staff.account_id.role,
-            status: staff.account_id.status,
+            role: staff.user_id.role,
+            status: staff.user_id.status,
           }
           : null,
       }),
@@ -146,46 +150,97 @@ const StaffService = {
   },
 
   async create(data) {
+    let user, staff;
+
+    console.log(data)
+    const { email, password, role_id, is_active, ...staffData } = data;
+
     const session = await mongoose.startSession();
     session.startTransaction();
 
-    console.log(data)
     try {
-      const { username, password, role, accountStatus, staffStatus, ...staffData } = data;
+      const existedEmail = await User.findOne({ email }).session(session);
+      if (existedEmail) throw new Error("Email already exists");
 
-      const existedUsername = await Account.findOne({ username });
-      if (existedUsername) throw new Error("username already exists");
+      const hashed = await hashPassword(password);
 
+      const role = await Role.findById(role_id).session(session);
+      if (!role) throw new Error("Role not found");
+      if (!["admin", "warehouse_manager", "order_processing"].includes(role.name)) {
+        throw new Error("Invalid role for staff");
+      }
+
+      const prefixMap = {
+        admin: "ADM",
+        warehouse_manager: "WAM",
+        order_processing: "OPS"
+      };
+      const prefix = prefixMap[role.name] || "STF";
       const staffCode = await generateCode({
         entity: "staff",
-        prefix: role === "admin" ? "ADM"
-          : role === "warehouse_manager" ? "WAM"
-            : "OPS",
+        prefix,
         session,
       });
 
-      const acc = await Account.create([{
-        username,
-        password_hash: await hashPassword(password),
-        role,
-        status: accountStatus
+      const users = await User.create([{
+        email,
+        password_hash: null,
+        role_id,
+        is_active,
+        is_verified: true
       }], { session });
 
-      const staff = await Staff.create([{
+      user = users[0];
+
+      const staffs = await Staff.create([{
         ...staffData,
         staff_code: staffCode,
-        account_id: acc[0]._id,
-        status: staffStatus,
+        user_id: user._id,
       }], { session });
 
+      staff = staffs[0];
+
       await session.commitTransaction();
-      return staff[0];
+
     } catch (e) {
       await session.abortTransaction();
       throw e;
     } finally {
       session.endSession();
     }
+
+    if (!user) {
+      console.error("User not created, skip sending email");
+      return;
+    }
+
+    try {
+      // tạo JWT verify token
+      const token = signToken(
+        {
+          user_id: user._id,
+          type: "set_password"
+        },
+        "24h"
+      );
+
+      const link = `${process.env.CLIENT_URL}/auth/reset-password?token=${token}`;
+      const html = setStaffPasswordTemplate(link, data.full_name);
+
+      const mailOptions = {
+        to: email,
+        subject: "[Skintify] - Set your password",
+        html
+      };
+
+      // gửi email
+      await sendMail(mailOptions);
+    } catch (e) {
+      console.error("Send mail failed:", e.message);
+    }
+
+    if (!staff) throw new Error("Staff creation failed");
+    return staff;
   },
 
   async update(id, updateData) {
@@ -197,11 +252,11 @@ const StaffService = {
       if (!staff)
         throw new Error("Staff not found").session(session);
 
-      const account = await Account.findById(staff.account_id).session(session);
-      if (!account)
-        throw new Error("Account not found");
+      const user = await User.findById(staff.user_id).session(session);
+      if (!user)
+        throw new Error("User not found");
 
-      let { role, accountStatus, staffStatus, image, ...staffData } = updateData;
+      let { role, userStatus, staffStatus, image, ...staffData } = updateData;
 
       // image logic
       if ("image" in updateData) {
@@ -237,11 +292,11 @@ const StaffService = {
       if (staffStatus) staff.status = staffStatus;
 
       // ===== UPDATE ACCOUNT DATA =====
-      if (role) account.role = role;
-      if (accountStatus) account.status = accountStatus;
+      if (role) user.role = role;
+      if (userStatus) user.status = userStatus;
 
       await staff.save({ session });
-      await account.save({ session });
+      await user.save({ session });
 
       await session.commitTransaction();
 
@@ -265,7 +320,7 @@ const StaffService = {
         throw new Error('Staff not found');
       }
 
-      const accountId = staff.account_id;
+      const userId = staff.user_id;
 
       /* ================= XÓA IMAGE ================= */
       if (staff.image) {
@@ -278,8 +333,8 @@ const StaffService = {
       /* ================= DELETE ================= */
       await Staff.deleteOne({ _id: staffId }).session(session);
 
-      if (accountId) {
-        await Account.deleteOne({ _id: accountId }).session(session);
+      if (userId) {
+        await User.deleteOne({ _id: userId }).session(session);
       }
 
       await session.commitTransaction();

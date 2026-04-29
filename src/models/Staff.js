@@ -29,10 +29,6 @@ const StaffSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    position: {
-      type: String,
-      default: ""
-    },
     status: {
       type: String,
       enum: ["active", "on_leave", "terminated"],

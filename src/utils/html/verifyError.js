@@ -1,4 +1,4 @@
-export const getErrorHTML = (message) => {
+export const getVerifyErrorHTML = (message) => {
   return `
     <!DOCTYPE html>
     <html>
