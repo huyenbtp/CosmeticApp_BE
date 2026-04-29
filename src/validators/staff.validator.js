@@ -39,7 +39,7 @@ function validateStaffBase(data) {
 function validateCreateStaff(data) {
   validateStaffBase(data);
 
-  const { email, password } = data;
+  const { email, password, role_id } = data;
 
   if (!email || !email.trim()) {
     throw new Error('Email is required');
@@ -51,6 +51,10 @@ function validateCreateStaff(data) {
 
   if (password.length < 8) {
     throw new Error('Password must be at least 8 characters');
+  }
+
+  if (!role_id) {
+    throw new Error('Role is required');
   }
 }
 

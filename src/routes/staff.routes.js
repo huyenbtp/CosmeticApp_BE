@@ -9,7 +9,7 @@ const StaffController = require("../controllers/StaffController");
 router.get("/", auth, requireRole(["admin"]), StaffController.getStaffs);
 router.get("/:id", auth, StaffController.getById);
 router.get("/admin-edit/:id", auth, StaffController.getByIdToAdminEdit);
-router.post("/", auth, requireRole(["admin"]), upload.single("image"), StaffController.create);
+router.post("/", upload.single("image"), StaffController.create);
 router.put("/:id", auth, requireRole(["admin"]), upload.single("image"), StaffController.update);
 router.delete("/:id", auth, requireRole(["admin"]), StaffController.delete);
 
@@ -111,44 +111,38 @@ module.exports = router;
  *           schema:
  *             type: object
  *             required:
- *               - username
+ *               - email
  *               - password
+ *               - role_id
  *               - full_name
  *               - phone
  *             properties:
- *               username:
+ *               email:
  *                 type: string
- *                 example: johndoe
+ *                 example: user@gmail.com
  *               password:
  *                 type: string
  *                 format: password
- *                 example: mySecret123
- *               role:
+ *                 example: 12345678
+ *               role_id:
  *                 type: string
- *                 enum: [admin, warehouse_manager, order_processing]
- *                 example: admin
- *               accountStatus:
- *                 type: string
- *                 enum: [active, inactive]
- *                 example: active
+ *                 example: 69f2285e7f3ef7c9cdbec50c
+ *               is_active:
+ *                 type: boolean
+ *                 example: true
  *               full_name:
  *                 type: string
  *                 example: John Doe
  *               gender:
  *                 type: string
- *                 enum: [male, female]
+ *                 enum: [male, female, other]
  *                 example: male
  *               dob:
- *                 type: Date
- *                 example: Date.now
+ *                 type: string
  *               phone:
  *                 type: string
  *                 example: 0912345678
- *               positon:
- *                 type: string
- *                 enum: [admin, warehouse_manager, order_processing]
- *                 default: admin
- *               staffStatus:
+ *               status:
  *                 type: string
  *                 enum: [active, on_leave, terminated]
  *                 default: active

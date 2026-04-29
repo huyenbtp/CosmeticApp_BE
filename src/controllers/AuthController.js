@@ -139,12 +139,12 @@ const AuthController = {
       const { token, newPassword } = req.body;
 
       if (!token || !newPassword) {
-        return res.status(400).json({ message: "Missing data" });
+        return res.status(400).send(getErrorHTML("Missing data"));
       }
 
       await AuthService.resetPassword(token, newPassword);
 
-      return res.send(getSuccessHTML());
+      return res.send(getSetPassSuccessHTML());
     } catch (e) {
       return res.status(400).send(getErrorHTML(e.message));
     }
