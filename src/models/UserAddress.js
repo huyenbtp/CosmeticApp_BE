@@ -5,39 +5,43 @@ const UserAddressSchema = new mongoose.Schema(
     user_id: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: 'User'
+      ref: "User",
     },
-    provider_name: {
+    receiver_name: {
       type: String,
-      required: true
+      required: true,
+      maxlength: 100,
     },
     phone: {
       type: String,
-      required: true
+      required: true,
+      maxlength: 20,
     },
-    address_line1: {
+    address_line: {
       type: String,
-      required: true
+      required: true,
+      maxlength: 255,
     },
-    address_line2: {
+    ward: {
       type: String,
-      default: null
+      maxlength: 100,
     },
     district: {
       type: String,
-      default: null
+      maxlength: 100,
     },
     city: {
       type: String,
-      required: true
+      required: true,
+      maxlength: 100,
     },
-    receive_time: {
-      type: Date,
-      default: null
-    }
+    is_default: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
-    timestamps: true
+    timestamps: true,
   }
 );
 

@@ -6,7 +6,7 @@ const ProductExportSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      maxlength: 20
+      maxlength: 50
     },
     created_by: {
       type: mongoose.Schema.Types.ObjectId,
