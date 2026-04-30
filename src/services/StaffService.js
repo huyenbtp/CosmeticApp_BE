@@ -78,7 +78,10 @@ const StaffService = {
                 user: {
                   _id: "$user._id",
                   email: "$user.email",
-                  role: "$role.name",
+                  role: {
+                    _id: "$role._id",
+                    name: "$role.name",
+                  },
                   is_active: "$user.is_active",
                 },
                 status: 1,
@@ -152,7 +155,7 @@ const StaffService = {
         status: staff.status,
         user: staff.user_id
           ? {
-            role: role.name,
+            role,
             is_active: staff.user_id.is_active,
           }
           : null,
@@ -164,7 +167,7 @@ const StaffService = {
     let user, staff;
 
     console.log(data)
-    const { email, password, role_id, is_active, ...staffData } = data;
+    const { email, role_id, is_active, ...staffData } = data;
 
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -172,8 +175,6 @@ const StaffService = {
     try {
       const existedEmail = await User.findOne({ email }).session(session);
       if (existedEmail) throw new Error("Email already exists");
-
-      const hashed = await hashPassword(password);
 
       const role = await Role.findById(role_id).session(session);
       if (!role) throw new Error("Role not found");

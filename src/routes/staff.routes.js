@@ -111,7 +111,6 @@ module.exports = router;
  *             type: object
  *             required:
  *               - email
- *               - password
  *               - role_id
  *               - full_name
  *               - phone
@@ -119,10 +118,6 @@ module.exports = router;
  *               email:
  *                 type: string
  *                 example: user@gmail.com
- *               password:
- *                 type: string
- *                 format: password
- *                 example: 12345678
  *               role_id:
  *                 type: string
  *                 example: 69f2285e7f3ef7c9cdbec50c
