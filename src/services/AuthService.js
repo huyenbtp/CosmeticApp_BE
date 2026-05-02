@@ -15,6 +15,7 @@ const AuthService = {
     password,
     full_name,
     gender,
+    dob,
     phone,
   }) {
     let user;
@@ -52,6 +53,7 @@ const AuthService = {
         user_id: user._id,
         full_name,
         gender,
+        dob,
         phone
       }], { session });
 

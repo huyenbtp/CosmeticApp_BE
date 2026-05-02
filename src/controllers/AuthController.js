@@ -4,11 +4,17 @@ const { getVerifyErrorHTML } = require("../utils/html/verifyError.js");
 const { getSetPassFormHTML } = require("../utils/html/setPassword.js");
 const { getSetPassSuccessHTML } = require("../utils/html/setPasswordSuccess.js");
 const { getErrorHTML } = require("../utils/html/error.js");
+const { validateCreateCustomer } = require("../validators/customer.validator.js");
 
 const AuthController = {
   async registerCustomer(req, res) {
     try {
-      const user = await AuthService.registerCustomer(req.body);
+      const data = req.body;
+      
+      validateCreateCustomer(data);
+
+      const user = await AuthService.registerCustomer(data);
+      
       res.status(201).json({
         message: "Check your email to verify account"
       });

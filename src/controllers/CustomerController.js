@@ -10,10 +10,23 @@ class CustomerController {
     }
   }
 
-  async getAll(req, res) {
+  async getCustomers(req, res) {
     try {
-      const customers = await CustomerService.getAllCustomers();
-      res.json(customers);
+      const {
+        page,
+        limit,
+        q,
+        is_active,
+      } = req.query;
+
+      const result = await CustomerService.getCustomers({
+        page: Number(page) || 1,
+        limit: Number(limit) || 7,
+        q,
+        is_active,
+      });
+
+      res.json(result);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }

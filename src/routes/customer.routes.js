@@ -5,7 +5,7 @@ const auth = require("../middleware/auth");
 const CustomerController = require("../controllers/CustomerController");
 
 router.post("/", auth, CustomerController.create);
-router.get("/", auth, CustomerController.getAll);
+router.get("/", auth, CustomerController.getCustomers);
 router.get("/:id", auth, CustomerController.getById);
 router.get("/phone/:phone", auth, CustomerController.getCustomerByPhone);
 router.put("/:id", auth, CustomerController.update);
@@ -17,12 +17,28 @@ module.exports = router;
  * @openapi
  * /api/customers:
  *   get:
- *     summary: Get all customers
+ *     summary: Get customers pagination, search and filters
  *     tags:
  *       - Customers
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 7 }
+ *       - in: query
+ *         name: q
+ *         schema: { type: string }
+ *         description: Search query
+ *       - in: query
+ *         name: is_active
+ *         schema:
+ *           type: boolean
+ *         description: Account status
  *     responses:
  *       200:
- *         description: List of customers
+ *         description: List of customers with pagination
  */
 
 /**
