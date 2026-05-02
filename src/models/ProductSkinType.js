@@ -12,9 +12,6 @@ const ProductSkinTypeSchema = new mongoose.Schema(
       required: true,
       ref: 'SkinType'
     },
-  },
-  {
-    timestamps: true,
   }
 );
 

@@ -30,7 +30,8 @@ const ProductExportSchema = new mongoose.Schema(
     },
     notes: {
       type: String,
-      maxlength: 1000
+      maxlength: 1000,
+      default: ""
     },
   },
   {

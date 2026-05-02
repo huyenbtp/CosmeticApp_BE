@@ -12,9 +12,6 @@ const ProductTagSchema = new mongoose.Schema(
       required: true,
       ref: 'Tag'
     }
-  },
-  {
-    timestamps: true,
   }
 );
 

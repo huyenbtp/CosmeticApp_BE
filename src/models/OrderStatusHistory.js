@@ -11,10 +11,10 @@ const OrderStatusHistorySchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    updated_at: {
-      type: Date,
+    updatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
-      default: Date.now,
+      ref: "Staff",
     },
   },
   {

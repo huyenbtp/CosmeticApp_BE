@@ -52,6 +52,17 @@ const ProductSchema = new mongoose.Schema(
       enum: ["published", "unpublished"],
       default: "published"
     },
+    avg_rating: {
+      type: Number,
+      default: 0,
+      min: 1,
+      max: 5,
+    },
+    review_count: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
   },
   {
     timestamps: true, // tự tạo createdAt + updatedAt

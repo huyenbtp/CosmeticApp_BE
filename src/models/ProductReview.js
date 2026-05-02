@@ -2,14 +2,20 @@ const mongoose = require("mongoose");
 
 const ProductReviewSchema = new mongoose.Schema(
   {
-    import_code: {
-      type: String,
-      default: null,
-    },
     product_id: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
       ref: 'Product',
+    },
+    user_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: 'User',
+    },
+    order_item_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: 'OrderItem',
     },
     rating: {
       type: Number,

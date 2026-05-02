@@ -25,11 +25,11 @@ const OrderSchema = new mongoose.Schema(
       type: Number,
       required: true
     },
-    discount_amount: {
+    shipping_fee: {
       type: Number,
       default: 0
     },
-    points_used: {
+    discount_amount: {
       type: Number,
       default: 0
     },
@@ -59,7 +59,39 @@ const OrderSchema = new mongoose.Schema(
     notes: {
       type: String,
       default: ''
-    }
+    },
+    receiver_name: {
+      type: String,
+      required: true,
+      maxlength: 100,
+    },
+    phone: {
+      type: String,
+      required: true,
+      maxlength: 20,
+    },
+    address_line: {
+      type: String,
+      required: true,
+      maxlength: 255,
+    },
+    ward: {
+      type: String,
+      maxlength: 100,
+    },
+    district: {
+      type: String,
+      maxlength: 100,
+    },
+    city: {
+      type: String,
+      required: true,
+      maxlength: 100,
+    },
+    receive_time: {
+      type: Date,
+      default: null
+    },
   },
   {
     timestamps: true, // tự tạo createdAt + updatedAt

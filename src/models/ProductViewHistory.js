@@ -20,12 +20,9 @@ const ProductViewHistorySchema = new mongoose.Schema(
     },
     last_viewed_at: {
       type: Date,
-      required: true,
+      default: Date.now
     },
   },
-  {
-    timestamps: true,
-  }
 );
 
 module.exports = mongoose.model("ProductViewHistory", ProductViewHistorySchema);
