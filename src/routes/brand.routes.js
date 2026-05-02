@@ -6,13 +6,42 @@ const upload = require("../middleware/upload");
 
 const BrandController = require("../controllers/BrandController");
 
-router.post("/", auth, requireRole(["admin"]), upload.single("logo"), BrandController.create);
+router.get("/pagination", auth, requireRole(["admin"]), BrandController.getBrandsPaginated);
 router.get("/", BrandController.getAll);
 router.get("/:id", auth, BrandController.getById);
+router.post("/", auth, requireRole(["admin"]), upload.single("logo"), BrandController.create);
 router.put("/:id", auth, requireRole(["admin"]), upload.single("logo"), BrandController.update);
 router.delete("/:id", auth, requireRole(["admin"]), BrandController.delete);
 
 module.exports = router;
+
+/**
+ * @openapi
+ * /api/brands/pagination:
+ *   get:
+ *     summary: Get brands pagination, search and filters
+ *     tags:
+ *       - Brands
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 7 }
+ *       - in: query
+ *         name: q
+ *         schema: { type: string }
+ *         description: Search query
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [active, archived]
+ *     responses:
+ *       200:
+ *         description: List of brands with pagination
+ */
 
 /**
  * @openapi

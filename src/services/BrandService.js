@@ -1,6 +1,78 @@
 const Brand = require("../models/Brand");
+const cloudinary = require("../config/cloudinary");
+const getPublicIdFromUrl = require("../utils/getImagePublicId");
 
 class BrandService {
+  async getBrandsPaginated({
+    page,
+    limit,
+    q = "",
+    status,
+  }) {
+    const skip = (page - 1) * limit;
+    const filter = {};
+
+    if (status) filter.status = status;
+
+    /* ---------- SEARCH ---------- */
+    const searchFilter = q
+      ? {
+        $or: [
+          { name: { $regex: q, $options: "i" } },
+          { sku: { $regex: q, $options: "i" } },
+        ],
+      }
+      : {};
+
+
+    /* ---------- AGGREGATE ---------- */
+    const pipeline = [
+      { $match: { ...filter, ...searchFilter } },
+      {
+        $lookup: {
+          from: "products",
+          localField: "_id",
+          foreignField: "brand_id",
+          as: "products",
+        },
+      },
+      {
+        $addFields: {
+          total_products: { $size: "$products" },
+        },
+      },
+      { $sort: { createdAt: -1 } },
+      {
+        $facet: {
+          data: [
+            { $skip: skip },
+            { $limit: limit },
+            {
+              $project: {
+                name: 1,
+                logo: 1,
+                status: 1,
+                total_products: 1,
+              },
+            },
+          ],
+          total: [{ $count: "count" }],
+        },
+      },
+    ];
+
+    const result = await Brand.aggregate(pipeline);
+
+    return {
+      data: result[0].data,
+      pagination: {
+        total: result[0].total[0]?.count || 0,
+        page,
+        limit,
+      },
+    };
+  }
+
   async createBrand(data) {
 
     const existedBrandName = await Brand.findOne({ name: data.name });
@@ -26,7 +98,7 @@ class BrandService {
       throw new Error("Brand not found");
     }
 
-    const { name, image } = updateData;
+    const { name, logo } = updateData;
 
     /* ---------- CHECK BRAND NAME UNIQUE ---------- */
     if (name && name !== brand.name) {

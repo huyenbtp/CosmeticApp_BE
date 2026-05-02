@@ -1,12 +1,25 @@
 const BrandService = require("../services/BrandService");
 
 class BrandController {
-  async create(req, res) {
+  async getBrandsPaginated(req, res) {
     try {
-      const brand = await BrandService.createBrand(req.body);
-      res.status(201).json(brand);
-    } catch (error) {
-      res.status(400).json({ message: error.message });
+      const {
+        page,
+        limit,
+        q,
+        status,
+      } = req.query;
+
+      const result = await BrandService.getBrandsPaginated({
+        page: Number(page) || 1,
+        limit: Number(limit) || 7,
+        q,
+        status,
+      });
+
+      res.json(result);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
     }
   }
 
@@ -31,9 +44,29 @@ class BrandController {
     }
   }
 
+  async create(req, res) {
+    try {
+      const data = {
+        ...req.body,
+        logo: req.file?.path || "",
+      };
+
+      const brand = await BrandService.createBrand(data);
+
+      res.status(201).json(brand);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+    }
+  }
+
   async update(req, res) {
     try {
-      const updated = await BrandService.updateBrand(req.params.id, req.body);
+      const data = {
+        ...req.body,
+        ...(req.file && { logo: req.file.path }),
+      };
+
+      const updated = await BrandService.updateBrand(req.params.id, data);
 
       if (!updated) return res.status(404).json({ message: "Brand not found" });
 
