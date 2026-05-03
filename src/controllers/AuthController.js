@@ -10,11 +10,11 @@ const AuthController = {
   async registerCustomer(req, res) {
     try {
       const data = req.body;
-      
+
       validateCreateCustomer(data);
 
       const user = await AuthService.registerCustomer(data);
-      
+
       res.status(201).json({
         message: "Check your email to verify account"
       });
@@ -67,12 +67,19 @@ const AuthController = {
         });
       }
 
-      const { token, user, profile } = await AuthService.login({
+      const { accessToken, refreshToken, user, profile } = await AuthService.login({
         email,
         password
       });
 
-      res.cookie("auth_token", token, {
+      res.cookie("access_token", accessToken, {
+        httpOnly: false,
+        secure: true,
+        sameSite: "none",
+        path: "/",
+      });
+
+      res.cookie("refresh_token", refreshToken, {
         httpOnly: false,
         secure: true,
         sameSite: "none",
@@ -87,7 +94,8 @@ const AuthController = {
       });
 
       res.json({
-        access_token: token,
+        access_token: accessToken,
+        refresh_token: refreshToken,
         user,
         profile,
       });
@@ -96,8 +104,35 @@ const AuthController = {
     }
   },
 
+  async refresh(req, res) {
+    try {
+      const refreshToken = req.cookies.refresh_token;
+
+      if (!refreshToken) {
+        return res.status(401).json({ message: "No refresh token" });
+      }
+
+      const { accessToken } = await AuthService.refresh(refreshToken);
+
+      res.cookie("access_token", accessToken, {
+        httpOnly: false,
+        secure: true,
+        sameSite: "none",
+        path: "/",
+      });
+
+      res.json({ 
+        access_token: accessToken
+      });
+
+    } catch (err) {
+      return res.status(401).json({ message: "Invalid refresh token" });
+    }
+  },
+
   async logout(req, res) {
-    res.clearCookie("auth_token");
+    res.clearCookie("access_token");
+    res.clearCookie("refresh_token");
     res.clearCookie("auth_role");
     res.json({ message: "Logged out" });
   },
@@ -153,6 +188,15 @@ const AuthController = {
       return res.send(getSetPassSuccessHTML());
     } catch (e) {
       return res.status(400).send(getErrorHTML(e.message));
+    }
+  },
+
+  async me(req, res) {
+    try {
+      const user = await AuthService.me(req.user.userId);
+      res.json(user);
+    } catch (error) {
+      res.status(400).json({ message: e.message });
     }
   },
 }

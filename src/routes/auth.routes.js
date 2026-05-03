@@ -9,11 +9,13 @@ router.post("/register-customer", AuthController.registerCustomer);
 router.get("/verify-email", AuthController.verifyEmail);
 router.post("/resend-verification", AuthController.resendVerification);
 router.post("/login", AuthController.login);
+router.post("/refresh", AuthController.refresh);
 router.post("/logout", AuthController.logout);
 router.post("/change-password", auth, AuthController.changePassword);
 router.post("/forgot-password", AuthController.forgotPassword);
 router.get("/reset-password", AuthController.getResetPasswordPage);
 router.post("/reset-password", AuthController.resetPassword);
+router.get("/me", AuthController.me);
 
 module.exports = router;
 /**
@@ -252,4 +254,16 @@ module.exports = router;
  *     responses:
  *       200:
  *         description: "Password resetted successfully"
+ */
+
+/**
+ * @openapi
+ * /auth/me:
+ *   get:
+ *     summary: Get profile information
+ *     tags:
+ *       - Auth
+ *     responses:
+ *       200:
+ *         description: Profile information
  */

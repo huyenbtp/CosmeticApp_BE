@@ -4,7 +4,7 @@ const Customer = require("../models/Customer.js");
 const Staff = require("../models/Staff");
 const Role = require("../models/Role");
 const { comparePassword, hashPassword } = require("../utils/hash");
-const { signToken, verifyToken } = require("../utils/jwt");
+const { signToken, signRefreshToken, verifyToken, verifyRefreshToken } = require("../utils/jwt");
 const { sendMail } = require("../utils/mailer.js");
 const { verifyEmailTemplate } = require("../utils/emailTemplates/verifyEmail.js");
 const { resetPasswordTemplate } = require("../utils/emailTemplates/resetPassword.js");
@@ -177,11 +177,6 @@ const AuthService = {
       throw new Error("Please set your password via email");
     }
 
-    const token = signToken({
-      userId: user._id.toString(),
-      role: user.role_id.name
-    }, '7d');
-
     let profile = null;
 
     if (user.role_id.name === "customer") {
@@ -190,14 +185,35 @@ const AuthService = {
       profile = await Staff.findOne({ user_id: user._id });
     }
 
+    const tokenPayload = {
+      userId: user._id.toString(),
+      role: user.role_id.name
+    };
+
     return {
-      token,
+      accessToken: signToken(tokenPayload, '8h'),
+      refreshToken: signRefreshToken(tokenPayload, '7d'),
       user: {
         _id: user._id,
         email: user.email,
         role: user.role_id.name
       },
       profile
+    };
+  },
+
+  async refresh(refreshToken) {
+    const payload = verifyRefreshToken(refreshToken);
+
+    const newPayload = {
+      userId: payload.userId,
+      role: payload.role,
+    };
+
+    const newAccessToken = signToken(newPayload);
+
+    return {
+      accessToken: newAccessToken,
     };
   },
 
@@ -269,6 +285,27 @@ const AuthService = {
 
     return { message: "Password set successfully" };
   },
+
+  async me(user_id) {
+    const user = await User.findById(user_id)
+      .populate("role_id");
+
+    if (!user) throw new Error("User not found");
+
+    let profile = null;
+
+    if (user.role_id.name === "customer") {
+      profile = await Customer.findOne({ user_id });
+    } else {
+      profile = await Staff.findOne({ user_id });
+    }
+
+    return {
+      email: user.email,
+      role: user.role_id.name,
+      profile
+    };
+  }
 }
 
 module.exports = AuthService;
