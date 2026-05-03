@@ -75,14 +75,14 @@ const AuthController = {
       res.cookie("auth_token", token, {
         httpOnly: false,
         secure: true,
-        sameSite: "lax",
+        sameSite: "none",
         path: "/",
       });
 
       res.cookie("auth_role", user.role, {
         httpOnly: false,
         secure: true,
-        sameSite: "lax",
+        sameSite: "none",
         path: "/",
       });
 
