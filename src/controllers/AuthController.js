@@ -106,7 +106,9 @@ const AuthController = {
 
   async refresh(req, res) {
     try {
-      const refreshToken = req.cookies.refresh_token;
+      const refreshToken =
+        req.cookies?.refresh_token ||
+        req.body?.refresh_token;
 
       if (!refreshToken) {
         return res.status(401).json({ message: "No refresh token" });
@@ -114,14 +116,17 @@ const AuthController = {
 
       const { accessToken } = await AuthService.refresh(refreshToken);
 
-      res.cookie("access_token", accessToken, {
-        httpOnly: false,
-        secure: true,
-        sameSite: "none",
-        path: "/",
-      });
+      if (req.cookies?.refresh_token) {
+        res.cookie("access_token", accessToken, {
+          httpOnly: false,
+          secure: true,
+          sameSite: "none",
+          path: "/",
+        });
+        return res.json({ message: "Refreshed" });
+      }
 
-      res.json({ 
+      res.json({
         access_token: accessToken
       });
 
@@ -196,7 +201,7 @@ const AuthController = {
       const user = await AuthService.me(req.user.userId);
       res.json(user);
     } catch (error) {
-      res.status(400).json({ message: e.message });
+      res.status(400).json({ message: error.message });
     }
   },
 }
