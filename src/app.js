@@ -16,6 +16,8 @@ const productImportRoutes = require("./routes/productImport.routes.js");
 const productRoutes = require("./routes/product.routes.js");
 const roleRoutes = require("./routes/role.routes.js");
 const staffRoutes = require("./routes/staff.routes.js");
+const skinTypeRoutes = require("./routes/skinType.routes.js");
+const tagRoutes = require("./routes/tag.routes.js");
 const userRoutes = require("./routes/user.routes.js");
 
 
@@ -43,7 +45,10 @@ app.use("/api/products", productRoutes);
 app.use("/api/product-imports", productImportRoutes);
 app.use("/api/roles", roleRoutes);
 app.use("/api/staffs", staffRoutes);
+app.use("/api/skin-types", skinTypeRoutes);
+app.use("/api/tags", tagRoutes);
 app.use("/api/users", userRoutes);
+
 
 // health check
 app.get("/health", (req, res) => {
