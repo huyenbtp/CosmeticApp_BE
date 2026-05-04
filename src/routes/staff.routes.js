@@ -8,7 +8,7 @@ const StaffController = require("../controllers/StaffController");
 
 router.get("/", auth, requireRole(["admin"]), StaffController.getStaffs);
 router.get("/:id", auth, StaffController.getById);
-router.get("/admin-edit/:id", auth, StaffController.getByIdToAdminEdit);
+router.get("/admin-edit/:id", auth, requireRole(["admin"]), StaffController.getByIdToAdminEdit);
 router.post("/", auth, requireRole(["admin"]), upload.single("image"), StaffController.create);
 router.put("/:id", auth, requireRole(["admin"]), upload.single("image"), StaffController.update);
 router.delete("/:id", auth, requireRole(["admin"]), StaffController.delete);

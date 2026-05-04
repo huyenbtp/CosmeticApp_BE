@@ -16,6 +16,7 @@ const productImportRoutes = require("./routes/productImport.routes.js");
 const productRoutes = require("./routes/product.routes.js");
 const roleRoutes = require("./routes/role.routes.js");
 const staffRoutes = require("./routes/staff.routes.js");
+const userRoutes = require("./routes/user.routes.js");
 
 
 const app = express();
@@ -42,6 +43,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/product-imports", productImportRoutes);
 app.use("/api/roles", roleRoutes);
 app.use("/api/staffs", staffRoutes);
+app.use("/api/users", userRoutes);
 
 // health check
 app.get("/health", (req, res) => {

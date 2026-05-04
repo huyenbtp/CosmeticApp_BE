@@ -39,18 +39,7 @@ const StaffController = {
 
   async getByIdToAdminEdit(req, res) {
     try {
-      const isAdmin = true;
-      const staff = await StaffService.getByIdToEdit(req.params.id, isAdmin);
-      res.json(staff);
-    } catch (e) {
-      res.status(404).json({ message: e.message });
-    }
-  },
-
-  async getByIdToSelfEdit(req, res) {
-    try {
-      const isAdmin = false;
-      const staff = await StaffService.getByIdToEdit(req.params.id, isAdmin);
+      const staff = await StaffService.getByIdToAdminEdit(req.params.id);
       res.json(staff);
     } catch (e) {
       res.status(404).json({ message: e.message });

@@ -137,13 +137,14 @@ const StaffService = {
     };
   },
 
-  async getByIdToEdit(id, isAdmin = false) {
+  async getByIdToAdminEdit(id) {
     const staff = await Staff.findById(id)
       .populate("user_id", "role_id is_active");
 
     if (!staff) throw new Error("Staff not found");
 
     const role = await Role.findById(staff.user_id.role_id);
+    if (!role) throw new Error("Role not found");
 
     return {
       full_name: staff.full_name,
@@ -151,15 +152,13 @@ const StaffService = {
       dob: staff.dob,
       phone: staff.phone,
       image: staff.image,
-      ...(isAdmin && {
-        status: staff.status,
-        user: staff.user_id
-          ? {
-            role,
-            is_active: staff.user_id.is_active,
-          }
-          : null,
-      }),
+      status: staff.status,
+      user: staff.user_id
+        ? {
+          role,
+          is_active: staff.user_id.is_active,
+        }
+        : null,
     };
   },
 
