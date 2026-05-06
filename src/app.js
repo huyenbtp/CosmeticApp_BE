@@ -36,6 +36,7 @@ app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 app.use("/auth", authRoutes);
 app.use("/api/brands", brandRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/cart-items", cartItemRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/discount-codes", discountCodeRoutes);
 app.use("/api/import-items", importItemRoutes);
@@ -48,6 +49,7 @@ app.use("/api/staffs", staffRoutes);
 app.use("/api/skin-types", skinTypeRoutes);
 app.use("/api/tags", tagRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/wishlist-items", wishlistItemRoutes);
 
 
 // health check
