@@ -87,9 +87,24 @@ class ProductController {
     }
   }
 
-  async getById(req, res) {
+  async getByIdAdmin(req, res) {
     try {
-      const product = await ProductService.getProductById(req.params.id);
+      const product = await ProductService.getProductByIdAdmin(req.params.id);
+
+      if (!product) return res.status(404).json({ message: "Product not found" });
+
+      res.json(product);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+
+  async getByIdCustomer(req, res) {
+    try {
+      const product = await ProductService.getProductByIdCustomer({
+        user_id: req.user.userId,
+        product_id: req.params.id
+      });
 
       if (!product) return res.status(404).json({ message: "Product not found" });
 

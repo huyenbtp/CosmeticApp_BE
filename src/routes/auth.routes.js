@@ -50,6 +50,8 @@ module.exports = router;
  *                 type: string
  *                 enum: [male, female, other]
  *                 example: male
+ *               dob:
+ *                 type: string
  *               phone:
  *                 type: string
  *                 example: "0912345678"

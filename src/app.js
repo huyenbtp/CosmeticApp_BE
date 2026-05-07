@@ -6,6 +6,7 @@ const swaggerSpec = require("./config/swagger");
 
 const authRoutes = require("./routes/auth.routes.js");
 const brandRoutes = require("./routes/brand.routes.js");
+const cartItemRoutes = require("./routes/cartItem.routes.js");
 const categoryRoutes = require("./routes/category.routes.js");
 const customerRoutes = require("./routes/customer.routes.js");
 const discountCodeRoutes = require("./routes/discountCode.routes.js");
@@ -19,6 +20,7 @@ const staffRoutes = require("./routes/staff.routes.js");
 const skinTypeRoutes = require("./routes/skinType.routes.js");
 const tagRoutes = require("./routes/tag.routes.js");
 const userRoutes = require("./routes/user.routes.js");
+const wishlistItemRoutes = require("./routes/wishlistItem.routes.js");
 
 
 const app = express();

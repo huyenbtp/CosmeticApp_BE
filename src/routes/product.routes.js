@@ -10,7 +10,8 @@ router.post("/", auth, requireRole(["admin"]), upload.single("image"), ProductCo
 router.get("/pagination", auth, requireRole(["admin"]), ProductController.getProductsPaginated);
 router.get("/infinite", auth, ProductController.getProductsInfinite);
 router.get("/stats", auth, ProductController.getStats);
-router.get("/:id", auth, ProductController.getById);
+router.get("/:id", auth, ProductController.getByIdAdmin);
+router.get("/:id/customer", auth, ProductController.getByIdCustomer);
 router.get("/import-item/:sku", auth, ProductController.getImportProductBySKU);
 router.put("/:id", auth, requireRole(["admin"]), upload.single("image"), ProductController.update);
 router.patch("/:id/status", auth, requireRole(["admin"]), ProductController.updateStatus);
@@ -123,7 +124,26 @@ module.exports = router;
  * @openapi
  * /api/products/{id}:
  *   get:
- *     summary: Get product information by ID
+ *     summary: Get product information by ID (for internal view)
+ *     tags:
+ *       - Products
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Id of the product to get
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Get product information successfully
+ */
+
+/**
+ * @openapi
+ * /api/products/{id}/customer:
+ *   get:
+ *     summary: Get product information by ID (for customer view)
  *     tags:
  *       - Products
  *     parameters:

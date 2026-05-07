@@ -23,6 +23,9 @@ const ImportDetailSchema = new mongoose.Schema(
       min: 1
     },
   },
+  {
+    timestamps: true, // tự tạo createdAt + updatedAt
+  }
 );
 
 module.exports = mongoose.model("ImportDetail", ImportDetailSchema);

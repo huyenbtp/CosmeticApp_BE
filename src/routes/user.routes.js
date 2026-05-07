@@ -6,15 +6,15 @@ const upload = require("../middleware/upload");
 
 const UserController = require("../controllers/UserController");
 
-router.put("/staff/:id", auth, upload.single("image"), UserController.updateByStaff);
-router.put("/customer/:id", auth, UserController.updateByCustomer);
+router.put("/profile/staff", auth, upload.single("image"), UserController.updateByStaff);
+router.put("/profile/customer", auth, UserController.updateByCustomer);
 router.patch("/:id/status", auth, requireRole(["admin"]), UserController.changeUserStatus);
 
 module.exports = router;
 
 /**
  * @openapi
- * /api/users/staff/{id}:
+ * /api/users/profile/staff:
  *   put:
  *     summary: Staff update their personal information
  *     tags:
@@ -50,7 +50,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /api/users/customer/{id}:
+ * /api/users/profile/customer:
  *   put:
  *     summary: Customer update their personal information
  *     tags:
