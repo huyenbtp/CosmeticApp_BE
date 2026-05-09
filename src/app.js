@@ -12,6 +12,7 @@ const discountCodeRoutes = require("./routes/discountCode.routes.js");
 const importItemRoutes = require("./routes/importItem.routes.js");
 const orderItemRoutes = require("./routes/orderItem.routes.js");
 const orderRoutes = require("./routes/order.routes.js");
+const orderStatusHistoryRoutes = require("./routes/orderStatusHistory.routes.js");
 const productViewHistoryRoutes = require("./routes/productViewHistory.routes.js");
 const productImportRoutes = require("./routes/productImport.routes.js");
 const productRoutes = require("./routes/product.routes.js");
@@ -19,6 +20,8 @@ const roleRoutes = require("./routes/role.routes.js");
 const staffRoutes = require("./routes/staff.routes.js");
 const skinTypeRoutes = require("./routes/skinType.routes.js");
 const tagRoutes = require("./routes/tag.routes.js");
+const userAddressRoutes = require("./routes/userAddress.routes.js");
+const wishlistItemRoutes = require("./routes/wishlistItem.routes.js");
 const userRoutes = require("./routes/user.routes.js");
 
 
@@ -43,6 +46,7 @@ app.use("/api/discount-codes", discountCodeRoutes);
 app.use("/api/import-items", importItemRoutes);
 app.use("/api/order-items", orderItemRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/order-status-history", orderStatusHistoryRoutes);
 app.use("/api/product-view-history", productViewHistoryRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/product-imports", productImportRoutes);
@@ -50,6 +54,7 @@ app.use("/api/roles", roleRoutes);
 app.use("/api/staffs", staffRoutes);
 app.use("/api/skin-types", skinTypeRoutes);
 app.use("/api/tags", tagRoutes);
+app.use("/api/user-addresses", userAddressRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/wishlist-items", wishlistItemRoutes);
 
