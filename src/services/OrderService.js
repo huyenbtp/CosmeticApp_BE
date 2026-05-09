@@ -1,13 +1,10 @@
 const mongoose = require("mongoose");
 const Order = require("../models/Order");
 const OrderItem = require("../models/OrderItem");
-const Customer = require("../models/Customer");
+const User = require("../models/User");
 const generateCode = require("../utils/codeGenerator");
 
-const DiscountCodeService = require("./DiscountCodeService");
 const ProductService = require("./ProductService");
-const PointTransactionService = require("./PointTransactionService");
-const DiscountCode = require("../models/DiscountCode");
 
 const OrderService = {
   async createOrder(data) {
@@ -16,11 +13,17 @@ const OrderService = {
 
     try {
       const {
-        customer_id = null,
-        discount_id = null,
+        user_id,
         items,
-        points_used = 0,
+        shipping_fee,
+        payment_method,
         notes = "",
+        receiver_name,
+        phone,
+        address_line = "",
+        ward,
+        district,
+        city,
       } = data;
       /**
          * items: [
@@ -28,18 +31,10 @@ const OrderService = {
          * ]
          */
 
-      /* ---------- KIỂM TRA CUSTOMER ---------- */
-      let customer = null;
-      if (customer_id) {
-        customer = await Customer.findById(customer_id).session(session);
-        if (!customer) throw new Error("Customer not found");
+      /* ---------- KIỂM TRA USER ---------- */
+      const user = await User.findById(user_id).session(session);
+      if (!user) throw new Error("User not found");
 
-        if (points_used > customer.points) {
-          throw new Error("Not enough points");
-        }
-      } else if (points_used > 0) {
-        throw new Error("Guest customer cannot use points");
-      }
 
       /* ---------- TÍNH SUBTOTAL ---------- */
       let subtotal = 0;
@@ -50,27 +45,8 @@ const OrderService = {
         totalItems += item.quantity;
       }
 
-      /* ---------- VALIDATE DISCOUNT (CHƯA APPLY) ---------- */
-      let discountCode = null;
-      if (discount_id) {
-        discountCode = await DiscountCodeService.validate(
-          discount_id,
-          subtotal,
-          session
-        );
-      }
-
-      /* ---------- TÍNH DISCOUNT (ƯỚC TÍNH) ---------- */
-      let discountAmount = 0;
-      if (discountCode) {
-        discountAmount =
-          discountCode.type === "percent"
-            ? (subtotal * discountCode.value) / 100
-            : discountCode.value;
-      }
-
       /* ---------- TOTAL DỰ KIẾN ---------- */
-      let estimatedTotal = subtotal - discountAmount - points_used;
+      let estimatedTotal = subtotal - shipping_fee;
       if (estimatedTotal < 0) estimatedTotal = 0;
 
       const orderCode = await generateCode({
@@ -85,22 +61,27 @@ const OrderService = {
         [
           {
             order_code: orderCode,
-            customer_id,
-            discount_id,
+            user_id,
             total_items: totalItems,
             subtotal: subtotal,
-            discount_amount: discountAmount, //ước tính
-            points_used,
+            shipping_fee,
             total_estimated: estimatedTotal,
             total_paid: 0,
-            notes,
+            payment_method,
             payment_status: "unpaid",
+            notes,
+            receiver_name,
+            phone,
+            address_line,
+            ward,
+            district,
+            city,
           },
         ],
         { session }
       );
 
-      /* ---------- TẠO ORDER DETAILS ---------- */
+      /* ---------- TẠO ORDER ITEMS ---------- */
       const orderItems = items.map(item => ({
         order_id: order._id,
         product_id: item.product_id,
@@ -111,65 +92,7 @@ const OrderService = {
       await OrderItem.insertMany(orderItems, { session });
 
       /* ---------- TRỪ STOCK ---------- */
-      await ProductService.validateAndDeduct(items, session);
-
-      await session.commitTransaction();
-      session.endSession();
-
-      return order;
-    } catch (error) {
-      await session.abortTransaction();
-      session.endSession();
-      throw error;
-    }
-  },
-
-  async payOrder({ order_id, payment_method, }) {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-      /* ---------- GET ORDER ---------- */
-      const order = await Order.findById(order_id).session(session);
-      if (!order) throw new Error("Order not found");
-
-      if (order.payment_status === "paid") {
-        throw new Error("Order already paid");
-      }
-
-      /* ---------- KIỂM TRA CUSTOMER ---------- */
-      let customer = null;
-      if (order.customer_id) {
-        customer = await Customer.findById(order.customer_id).session(session);
-        if (!customer) throw new Error("Customer not found");
-      }
-
-      /* ---------- TRỪ & TÍCH ĐIỂM CHO KHÁCH ---------- */
-      if (customer) {
-        await PointTransactionService.applyOrderPoints({
-          customer,
-          orderId: order_id,
-          totalAmount: order.total_estimated,
-          pointsUsed: order.points_used,
-          session,
-        });
-      }
-
-      /* ---------- APPLY DISCOUNT ---------- */
-      if (order.discount_id && order.discount_amount > 0) {
-        const discountCode = await DiscountCode.findById(discount_id).session(session);
-        if (!discountCode) throw new Error("Discount not found");
-
-        discountCode.used_count += 1;
-        await discountCode.save({ session });
-      }
-
-      /* ---------- UPDATE ORDER ---------- */
-      order.total_paid = order.total_estimated;
-      order.payment_method = payment_method;
-      order.payment_status = "paid";
-
-      await order.save({ session });
+      //await ProductService.validateAndDeduct(items, session);
 
       await session.commitTransaction();
       session.endSession();

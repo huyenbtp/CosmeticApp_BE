@@ -25,4 +25,9 @@ const ProductViewHistorySchema = new mongoose.Schema(
   },
 );
 
+ProductViewHistorySchema.index({
+  user_id: 1,
+  last_viewed_at: -1
+});
+
 module.exports = mongoose.model("ProductViewHistory", ProductViewHistorySchema);

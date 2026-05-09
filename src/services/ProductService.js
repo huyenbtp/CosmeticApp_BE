@@ -145,7 +145,7 @@ const ProductService = {
   },
 
   async getProductsInfinite({
-    q,
+    q = "",
     page,
     limit,
   }) {
@@ -154,7 +154,6 @@ const ProductService = {
     /* ---------- BASE FILTER ---------- */
     const filter = {
       status: "published",
-      stock_quantity: { $gt: 0 },
     };
 
     /* ---------- SEARCH ---------- */
@@ -168,18 +167,6 @@ const ProductService = {
 
     const pipeline = [
       { $match: filter },
-
-      /* ---------- CATEGORY ---------- */
-      {
-        $lookup: {
-          from: "categories",
-          localField: "category_id",
-          foreignField: "_id",
-          as: "category",
-        },
-      },
-      { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
-
       /* ---------- BRAND ---------- */
       {
         $lookup: {
@@ -202,13 +189,10 @@ const ProductService = {
       {
         $project: {
           _id: 1,
-          sku: 1,
           name: 1,
           selling_price: 1,
-          stock_quantity: 1,
           image: 1,
-
-          category: "$category.name",
+          avg_rating: 1,
           brand: "$brand.name",
         },
       },
@@ -591,7 +575,7 @@ const ProductService = {
         entity: "product",
         prefix: `${categoryCode}-${brandCode}`
       });
-      data.sku = sku;
+      productData.sku = sku;
     }
     const product = await Product.create(productData);
 

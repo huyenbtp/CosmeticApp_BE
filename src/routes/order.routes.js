@@ -47,19 +47,33 @@ module.exports = router;
  *               user_id:
  *                 type: string
  *                 description: Customer's user ID
- *                 example: 64fa12abc1234567890defab
- *               discount_id:
- *                 type: string
- *                 nullable: true
- *                 description: Discount ID (optional)
- *                 example: 64fa12abc1234567890defab
- *               points_used:
+ *                 example: 69f8d3315d94135bf5f59911
+ *               shipping_fee:
  *                 type: number
- *                 minimum: 0
- *                 example: 100
+ *                 example: 0
+ *               payment_method:
+ *                 type: string
+ *                 example: cod
  *               notes:
  *                 type: string
- *                 example: Customer wants quick checkout
+ *               receiver_name:
+ *                 type: string
+ *                 example: Bich La
+ *               phone:
+ *                 type: string
+ *                 example: 0912345678
+ *               address_line:
+ *                 type: string
+ *                 example: 123 duong A
+ *               ward:
+ *                 type: string
+ *                 example: Phuong B
+ *               district:
+ *                 type: string
+ *                 example: Thanh pho Thu Duc
+ *               city:
+ *                 type: string
+ *                 example: Thanh pho Ho Chi Minh
  *               items:
  *                 type: array
  *                 minItems: 1
@@ -72,7 +86,7 @@ module.exports = router;
  *                   properties:
  *                     product_id:
  *                       type: string
- *                       example: 65a8b5c1c2a1e91234567891
+ *                       example: 69fd0e8ea6f3f75746cfa6b2
  *                     unit_price:
  *                       type: number
  *                       example: 120000

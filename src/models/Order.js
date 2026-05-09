@@ -12,11 +12,6 @@ const OrderSchema = new mongoose.Schema(
       required: true,
       ref: "User"
     },
-    discount_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "DiscountCode",
-      default: null
-    },
     total_items: {
       type: Number,
       required: true
@@ -26,10 +21,6 @@ const OrderSchema = new mongoose.Schema(
       required: true
     },
     shipping_fee: {
-      type: Number,
-      default: 0
-    },
-    discount_amount: {
       type: Number,
       default: 0
     },

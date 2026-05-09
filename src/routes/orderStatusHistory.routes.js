@@ -5,8 +5,7 @@ const OrderStatusHistoryController = require("../controllers/OrderStatusHistoryC
 
 router.post("/", OrderStatusHistoryController.create);
 router.get("/", OrderStatusHistoryController.getAll);
-router.get("/order/:orderId", OrderStatusHistoryController.getByOrderId);
-router.get("/:id", OrderStatusHistoryController.getById);
+router.get("/order/:id", OrderStatusHistoryController.getByOrderId);
 router.delete("/:id", OrderStatusHistoryController.delete);
 
 module.exports = router;
@@ -25,14 +24,14 @@ module.exports = router;
 
 /**
  * @openapi
- * /api/order-status-history/order/{orderId}:
+ * /api/order-status-history/order/{id}:
  *   get:
  *     summary: Get status history for a specific order
  *     tags:
  *       - Order Status History
  *     parameters:
  *       - in: path
- *         name: orderId
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
@@ -69,24 +68,6 @@ module.exports = router;
  *     responses:
  *       201:
  *         description: History record created
- */
-
-/**
- * @openapi
- * /api/order-status-history/{id}:
- *   get:
- *     summary: Get history record by ID
- *     tags:
- *       - Order Status History
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: History record details
  */
 
 /**

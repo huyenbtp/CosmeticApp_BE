@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const ImportDetailSchema = new mongoose.Schema(
+const ImportItemSchema = new mongoose.Schema(
   {
     import_id: {
       type: mongoose.Schema.Types.ObjectId,
@@ -28,4 +28,4 @@ const ImportDetailSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("ImportDetail", ImportDetailSchema);
+module.exports = mongoose.model("ImportItem", ImportItemSchema);
