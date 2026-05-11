@@ -1,29 +1,40 @@
 const RecommendationService = require("../services/RecommendationService");
 
-const getRecommendations = async (req, res) => {
-  try {
-    const userId = req.user.userId;
+const RecommendationController = {
+  async getRecommendations(req, res) {
+    try {
+      const userId = req.user.userId;
 
-    const limit =
-      Number(req.query.limit) || 10;
+      const limit = Number(req.query.limit) || 10;
 
-    const products =
-      await RecommendationService.getRecommendations(
+      const products = await RecommendationService.getRecommendations(
         userId,
         limit
       );
 
-    res.json(products);
+      res.json(products);
 
-  } catch (error) {
-    console.error(error);
+    } catch (error) {
+      console.error(error);
 
-    return res.status(500).json({
-      message: "Failed to get recommendations",
-    });
+      return res.status(500).json({ message: "Failed to get recommendations" });
+    }
+  },
+
+  async getNewestProducts(req, res) {
+    try {
+      const limit = Number(req.query.limit) || 10;
+
+      const products = await RecommendationService.getNewestProducts(limit);
+
+      res.json(products);
+
+    } catch (error) {
+      console.error(error);
+
+      return res.status(500).json({ message: "Failed to get newest products" });
+    }
   }
-};
+}
 
-module.exports = {
-  getRecommendations,
-};
+module.exports = RecommendationController;

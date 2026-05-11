@@ -1,39 +1,51 @@
 const OrderStatusHistory = require("../models/OrderStatusHistory");
+const Staff = require("../models/Staff");
+const Order = require("../models/Order");
 
-class OrderStatusHistoryService {
+const statusType = ["pending", "confirmed", "shipping", "delivered", "cancelled", "returned"];
 
-  async create(data) {
-    return await OrderStatusHistory.create(data);
-  }
+const OrderStatusHistoryService = {
+  async getAllByOrderId(order_id) {
+    const order = await Order.findById(order_id);
+    if (!order) {
+      throw new Error("Order not found");
+    }
 
-  /**
-   * Get all status history records for a specific order.
-   * Sorted by creation time descending (using _id as proxy since timestamps are disabled).
-   * @param {string} orderId - Order ID
-   */
-  async getByOrderId(orderId) {
-    return await OrderStatusHistory.find({ order_id: orderId })
-      .populate("updatedBy", "full_name staff_code")
-      .sort({ _id: -1 });
-  }
+    const result = await OrderStatusHistory.find({ order_id })
+      .sort({ updatedAt: -1 })
+      .populate("updated_by", "full_name")
+      .lean();
 
+    return result.map(item => ({
+      ...item,
+      updated_by: item.updated_by.full_name
+    }))
+  },
 
-  async getAll() {
-    return await OrderStatusHistory.find()
-      .populate("updatedBy", "full_name staff_code")
-      .sort({ _id: -1 });
-  }
+  async create(user_id, order_id, status = "pending", notes = "") {
+    const staff = await Staff.findOne({ user_id });
+    if (!staff) {
+      throw new Error("Staff not found");
+    }
 
+    const order = await Order.findById(order_id);
+    if (!order) {
+      throw new Error("Order not found");
+    }
 
-  async getById(id) {
-    return await OrderStatusHistory.findById(id)
-      .populate("updatedBy", "full_name staff_code");
-  }
+    if (!statusType.includes(status)) {
+      throw new Error("Invalid status");
+    }
 
+    order.order_status = status;
+    await order.save();
+
+    return await OrderStatusHistory.create({ updated_by: staff._id, order_id, status, notes });
+  },
 
   async delete(id) {
     return await OrderStatusHistory.findByIdAndDelete(id);
   }
 }
 
-module.exports = new OrderStatusHistoryService();
+module.exports = OrderStatusHistoryService;

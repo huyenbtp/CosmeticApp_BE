@@ -1,59 +1,56 @@
 const CartItemService = require("../services/CartItemService");
 
-class CartItemController {
-  async create(req, res) {
+const CartItemController = {
+  async getAllByUserId(req, res) {
     try {
-      const cartItem = await CartItemService.createCartItem(req.body);
+      const user_id = req.user.userId;
+
+      const result = await CartItemService.getAllByUserId(user_id);
+
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  async addToCart(req, res) {
+    try {
+      const user_id = req.user.userId;
+      const { product_id, quantity } = req.body;
+
+      const cartItem = await CartItemService.addToCart(user_id, product_id, quantity);
+
       res.status(201).json(cartItem);
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
-  }
+  },
 
-  async getAll(req, res) {
+  async updateQuantity(req, res) {
     try {
-      const cartItems = await CartItemService.getAllCartItems();
-      res.json(cartItems);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  }
+      const { quantity } = req.body;
 
-  async getById(req, res) {
-    try {
-      const cartItem = await CartItemService.getCartItemById(req.params.id);
+      const updated = await CartItemService.updateQuantity(req.params.id, quantity);
 
-      if (!cartItem) return res.status(404).json({ message: "CartItem not found" });
-
-      res.json(cartItem);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  }
-
-  async update(req, res) {
-    try {
-      const updated = await CartItemService.updateCartItem(req.params.id, req.body);
-
-      if (!updated) return res.status(404).json({ message: "CartItem not found" });
+      if (!updated) return res.status(404).json({ message: "Cart item not found" });
 
       res.json(updated);
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
-  }
+  },
 
   async delete(req, res) {
     try {
       const deleted = await CartItemService.deleteCartItem(req.params.id);
 
-      if (!deleted) return res.status(404).json({ message: "CartItem not found" });
+      if (!deleted) return res.status(404).json({ message: "Cart item not found" });
 
-      res.json({ message: "CartItem deleted" });
+      res.json({ message: "Cart item deleted" });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   }
 }
 
-module.exports = new CartItemController();
+module.exports = CartItemController;

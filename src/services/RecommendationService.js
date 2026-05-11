@@ -84,7 +84,7 @@ const RecommendationService = {
 
     // COLD START
     if (basket.size === 0) {
-      return this.getNewestProducts();
+      return this.getNewestProducts(10);
     }
 
     // LOAD SIMILARITIES
@@ -120,7 +120,7 @@ const RecommendationService = {
     });
 
     if (scores.size < 10) {
-      return this.getNewestProducts();
+      return this.getNewestProducts(10);
     }
 
     // SORT TOP-N PRODUCTS
@@ -157,11 +157,11 @@ const RecommendationService = {
       .filter(Boolean);
   },
 
-  async getNewestProducts() {
+  async getNewestProducts(limit = 10) {
     const res = await Product.find({ status: "published", })
+      .limit(limit)
       .populate("brand_id", "name")
-      .sort({ updatedAt: -1, })
-      .limit(limit);
+      .sort({ updatedAt: -1, });
 
     return res.map(item => ({
       _id: item._id,

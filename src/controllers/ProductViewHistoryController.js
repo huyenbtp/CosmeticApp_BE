@@ -1,59 +1,42 @@
 const ProductViewHistoryService = require("../services/ProductViewHistoryService");
 
-class ProductViewHistoryController {
-  async create(req, res) {
+const ProductViewHistoryController = {
+  async getAllByUserId(req, res) {
     try {
-      const productViewHistory = await ProductViewHistoryService.createProductViewHistory(req.body);
-      res.status(201).json(productViewHistory);
-    } catch (error) {
-      res.status(400).json({ message: error.message });
-    }
-  }
+      const user_id = req.user.userId;
 
-  async getAll(req, res) {
-    try {
-      const productViewHistorys = await ProductViewHistoryService.getAllProductViewHistorys();
+      const productViewHistorys = await ProductViewHistoryService.getAllByUserId(user_id);
+
       res.json(productViewHistorys);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
-  }
+  },
 
-  async getById(req, res) {
+  async viewProduct(req, res) {
     try {
-      const productViewHistory = await ProductViewHistoryService.getProductViewHistoryById(req.params.id);
+      const user_id = req.user.userId;
+      const { product_id } = req.body;
 
-      if (!productViewHistory) return res.status(404).json({ message: "ProductViewHistory not found" });
+      const productViewHistory = await ProductViewHistoryService.viewProduct(user_id, product_id);
 
-      res.json(productViewHistory);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  }
-
-  async update(req, res) {
-    try {
-      const updated = await ProductViewHistoryService.updateProductViewHistory(req.params.id, req.body);
-
-      if (!updated) return res.status(404).json({ message: "ProductViewHistory not found" });
-
-      res.json(updated);
+      res.status(201).json({ message: "Product view history recorded" });
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
-  }
+  },
 
   async delete(req, res) {
     try {
       const deleted = await ProductViewHistoryService.deleteProductViewHistory(req.params.id);
 
-      if (!deleted) return res.status(404).json({ message: "ProductViewHistory not found" });
+      if (!deleted) return res.status(404).json({ message: "Product view history not found" });
 
-      res.json({ message: "ProductViewHistory deleted" });
+      res.json({ message: "Product view history deleted" });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   }
 }
 
-module.exports = new ProductViewHistoryController();
+module.exports = ProductViewHistoryController;

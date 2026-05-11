@@ -9,16 +9,22 @@ const OrderStatusHistorySchema = new mongoose.Schema(
     },
     status: {
       type: String,
+      enum: ["pending", "confirmed", "shipping", "delivered", "cancelled", "returned"],
       required: true,
     },
-    updatedBy: {
+    notes: {
+      type: String,
+      maxlength: 100,
+      default: ""
+    },
+    updated_by: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
       ref: "Staff",
     },
   },
   {
-    timestamps: false,
+    timestamps: { updatedAt: true },
   }
 );
 

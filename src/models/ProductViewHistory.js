@@ -14,7 +14,6 @@ const ProductViewHistorySchema = new mongoose.Schema(
     },
     view_count: {
       type: Number,
-      required: true,
       default: 1,
       min: 0,
     },

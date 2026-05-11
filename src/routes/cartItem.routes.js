@@ -4,11 +4,10 @@ const auth = require("../middleware/auth");
 
 const CartItemController = require("../controllers/CartItemController");
 
-router.post("/", CartItemController.create);
-router.get("/", CartItemController.getAll);
-router.get("/:id", CartItemController.getById);
-router.put("/:id", CartItemController.update);
-router.delete("/:id", CartItemController.delete);
+router.get("/", auth, CartItemController.getAllByUserId);
+router.post("/", auth, CartItemController.addToCart);
+router.put("/:id", auth, CartItemController.updateQuantity);
+router.delete("/:id", auth, CartItemController.delete);
 
 module.exports = router;
 
@@ -16,9 +15,9 @@ module.exports = router;
  * @openapi
  * /api/cart-items:
  *   get:
- *     summary: Get all cart items
+ *     summary: Get all cart items of the user who sent the request
  *     tags:
- *       - CartItems
+ *       - Cart Items
  *     responses:
  *       200:
  *         description: List of cart items
@@ -28,9 +27,9 @@ module.exports = router;
  * @openapi
  * /api/cart-items:
  *   post:
- *     summary: Create a new cart item
+ *     summary: Add a product to cart
  *     tags:
- *       - CartItems
+ *       - Cart Items
  *     requestBody:
  *       required: true
  *       content:
@@ -38,12 +37,13 @@ module.exports = router;
  *           schema:
  *             type: object
  *             properties:
- *               user_id:
- *                 type: string
  *               product_id:
  *                 type: string
  *               quantity:
  *                 type: number
+ *                 min: 1
+ *                 max: 100
+ *                 example: 1
  *     responses:
  *       201:
  *         description: Cart item created
@@ -52,29 +52,10 @@ module.exports = router;
 /**
  * @openapi
  * /api/cart-items/{id}:
- *   get:
- *     summary: Get cart item by ID
- *     tags:
- *       - CartItems
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: Id of the cart item
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Cart item details
- */
-
-/**
- * @openapi
- * /api/cart-items/{id}:
  *   put:
- *     summary: Update cart item information
+ *     summary: Update cart item quantity
  *     tags:
- *       - CartItems
+ *       - Cart Items
  *     parameters:
  *       - in: path
  *         name: id
@@ -91,9 +72,12 @@ module.exports = router;
  *             properties:
  *               quantity:
  *                 type: number
+ *                 min: 1
+ *                 max: 100
+ *                 example: 2
  *     responses:
  *       200:
- *         description: Cart item updated
+ *         description: Cart item's quantity updated
  */
 
 /**
@@ -102,7 +86,7 @@ module.exports = router;
  *   delete:
  *     summary: Delete cart item
  *     tags:
- *       - CartItems
+ *       - Cart Items
  *     parameters:
  *       - in: path
  *         name: id

@@ -1,30 +1,18 @@
 const express = require("express");
 const router = express.Router();
+const auth = require("../middleware/auth");
 
 const OrderStatusHistoryController = require("../controllers/OrderStatusHistoryController");
 
-router.post("/", OrderStatusHistoryController.create);
-router.get("/", OrderStatusHistoryController.getAll);
-router.get("/order/:id", OrderStatusHistoryController.getByOrderId);
+router.get("/:id", OrderStatusHistoryController.getAllByOrderId);
+router.post("/", auth, OrderStatusHistoryController.create);
 router.delete("/:id", OrderStatusHistoryController.delete);
 
 module.exports = router;
 
 /**
  * @openapi
- * /api/order-status-history:
- *   get:
- *     summary: Get all order status history records
- *     tags:
- *       - Order Status History
- *     responses:
- *       200:
- *         description: List of history records
- */
-
-/**
- * @openapi
- * /api/order-status-history/order/{id}:
+ * /api/order-status-history/{id}:
  *   get:
  *     summary: Get status history for a specific order
  *     tags:
@@ -38,7 +26,7 @@ module.exports = router;
  *         description: Order ID
  *     responses:
  *       200:
- *         description: List of history entries for the order
+ *         description: List of status history for the order
  */
 
 /**
@@ -57,13 +45,13 @@ module.exports = router;
  *             required:
  *               - order_id
  *               - status
- *               - updatedBy
+ *               - notes
  *             properties:
  *               order_id:
  *                 type: string
  *               status:
  *                 type: string
- *               updatedBy:
+ *               notes:
  *                 type: string
  *     responses:
  *       201:

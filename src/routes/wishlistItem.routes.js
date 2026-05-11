@@ -1,12 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/auth");
+
 const WishlistItemController = require("../controllers/WishlistItemController");
 
+router.get("/", auth, WishlistItemController.getAllByUserId);
 router.post("/", auth, WishlistItemController.create);
-router.get("/", auth, WishlistItemController.getAll);
-router.get("/:id", auth, WishlistItemController.getById);
-router.put("/:id", auth, WishlistItemController.update);
 router.delete("/:id", auth, WishlistItemController.delete);
 
 module.exports = router;
@@ -15,7 +14,7 @@ module.exports = router;
  * @openapi
  * /api/wishlist-items:
  *   get:
- *     summary: Get all wishlist items
+ *     summary: Get all wishlist items of the user who sent the request
  *     tags:
  *       - Wishlist Items
  *     responses:
@@ -27,7 +26,7 @@ module.exports = router;
  * @openapi
  * /api/wishlist-items:
  *   post:
- *     summary: Create a new wishlist item
+ *     summary: Add a product to wishlist
  *     tags:
  *       - Wishlist Items
  *     requestBody:
@@ -37,65 +36,13 @@ module.exports = router;
  *           schema:
  *             type: object
  *             properties:
- *               user_id:
- *                 type: string
  *               product_id:
  *                 type: string
  *             required:
- *               - user_id
  *               - product_id
  *     responses:
  *       201:
  *         description: Wishlist item created
- */
-
-/**
- * @openapi
- * /api/wishlist-items/{id}:
- *   get:
- *     summary: Get wishlist item by ID
- *     tags:
- *       - Wishlist Items
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: Id of the wishlist item
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Wishlist item details
- */
-
-/**
- * @openapi
- * /api/wishlist-items/{id}:
- *   put:
- *     summary: Update wishlist item information
- *     tags:
- *       - Wishlist Items
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: Id of the wishlist item to be updated
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               user_id:
- *                 type: string
- *               product_id:
- *                 type: string
- *     responses:
- *       200:
- *         description: Wishlist item updated
  */
 
 /**
