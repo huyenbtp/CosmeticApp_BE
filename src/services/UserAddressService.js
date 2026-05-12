@@ -1,32 +1,7 @@
 const UserAddress = require("../models/UserAddress");
 const User = require("../models/User");
 
-class UserAddressService {
-  /**
-   * Create a new address for a user.
-   * If is_default is true, unset all other default addresses of this user.
-   */
-  async createAddress(data) {
-    const { user_id, ...rest } = data;
-
-    // Verify user exists
-    const user = await User.findById(user_id);
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    // Handle default address logic
-    if (rest.is_default) {
-      await UserAddress.updateMany(
-        { user_id, is_default: true },
-        { is_default: false }
-      );
-    }
-
-    const address = await UserAddress.create({ user_id, ...rest });
-    return address;
-  }
-
+const UserAddressService = {
   /**
    * Get all addresses of a user, sorted by default first, then recent updated.
    */
@@ -37,18 +12,49 @@ class UserAddressService {
     }
 
     return await UserAddress.find({ user_id }).sort({ is_default: -1, updatedAt: -1 });
-  }
+  },
 
   /**
-   * Get a single address by its ID.
+   * Get default address of a user
    */
-  async getAddressById(id) {
-    const address = await UserAddress.findById(id);
-    if (!address) {
-      throw new Error("Address not found");
+  async getDefaultAddressByUserId(user_id) {
+    const user = await User.findById(user_id);
+    if (!user) {
+      throw new Error("User not found");
     }
+
+    const defaultAddress = await UserAddress.findOne({
+      user_id, is_default: true
+    });
+
+    return defaultAddress || null;
+  },
+
+  /**
+   * Create a new address for a user.
+   * If is_default is true, unset all other default addresses of this user.
+   */
+  async createAddress(user_id, data) {
+    // Verify user exists
+    const user = await User.findById(user_id);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Handle default address logic
+    const defaultAddress = await UserAddress.findOne({
+      user_id, is_default: true
+    })
+
+    if (!defaultAddress) data.is_default = true;
+    else if (data.is_default) {
+      defaultAddress.is_default = false;
+      defaultAddress.save();
+    }
+
+    const address = await UserAddress.create({ user_id, ...data });
     return address;
-  }
+  },
 
   /**
    * Update an address.
@@ -70,18 +76,21 @@ class UserAddressService {
     Object.assign(address, updateData);
     await address.save();
     return address;
-  }
+  },
 
   /**
    * Delete an address by its ID.
    */
   async deleteAddress(id) {
-    const address = await UserAddress.findByIdAndDelete(id);
+    const address = await UserAddress.findById(id);
     if (!address) {
       throw new Error("Address not found");
     }
-    return address;
-  }
+    if (address.is_default) {
+      throw new Error("Default address can not be deleted");
+    }
+    return await address.deleteOne();
+  },
 }
 
-module.exports = new UserAddressService();
+module.exports = UserAddressService;

@@ -22,12 +22,26 @@ const UserAddressSchema = new mongoose.Schema(
       required: true,
       maxlength: 255,
     },
+    ward_code: {
+      type: Number,
+      required: true,
+    },
+    district_code: {
+      type: Number,
+      required: true,
+    },
+    city_code: {
+      type: Number,
+      required: true,
+    },
     ward: {
       type: String,
+      required: true,
       maxlength: 100,
     },
     district: {
       type: String,
+      required: true,
       maxlength: 100,
     },
     city: {
@@ -44,5 +58,9 @@ const UserAddressSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+UserAddressSchema.index({
+  user_id: 1,
+});
 
 module.exports = mongoose.model("UserAddress", UserAddressSchema);

@@ -20,7 +20,7 @@ const WishlistItemController = {
 
       const wishlistItem = await WishlistItemService.createWishlistItem(user_id, product_id);
 
-      res.status(201).json({ message: "Wishlist item added" });
+      res.status(201).json(true);
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
@@ -28,11 +28,14 @@ const WishlistItemController = {
 
   async delete(req, res) {
     try {
-      const deleted = await WishlistItemService.deleteWishlistItem(req.params.id);
+      const user_id = req.user.userId;
+      const product_id = req.params.id;
+
+      const deleted = await WishlistItemService.deleteWishlistItem(user_id, product_id);
 
       if (!deleted) return res.status(404).json({ message: "Wishlist item not found" });
 
-      res.json({ message: "Wishlist item deleted" });
+      res.json(false);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }

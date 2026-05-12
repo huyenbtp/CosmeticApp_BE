@@ -5,6 +5,7 @@ const auth = require("../middleware/auth");
 const CartItemController = require("../controllers/CartItemController");
 
 router.get("/", auth, CartItemController.getAllByUserId);
+router.get("/count", auth, CartItemController.getTotalItemsByUserId);
 router.post("/", auth, CartItemController.addToCart);
 router.put("/:id", auth, CartItemController.updateQuantity);
 router.delete("/:id", auth, CartItemController.delete);
@@ -22,6 +23,19 @@ module.exports = router;
  *       200:
  *         description: List of cart items
  */
+
+/**
+ * @openapi
+ * /api/cart-items/count:
+ *   get:
+ *     summary: Get total cart items of the user who sent the request
+ *     tags:
+ *       - Cart Items
+ *     responses:
+ *       200:
+ *         description: Total of cart items
+ */
+
 
 /**
  * @openapi

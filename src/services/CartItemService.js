@@ -4,10 +4,6 @@ const Product = require("../models/Product");
 
 const CartItemService = {
   async getAllByUserId(user_id) {
-    const user = await User.findById(user_id);
-    if (!user) {
-      throw new Error("User not found");
-    }
     const result = await CartItem.find({ user_id })
       .sort({ updatedAt: -1 })
       .populate("product_id", "name selling_price image stock_quantity");
@@ -26,6 +22,10 @@ const CartItemService = {
       createdAt: item.createdAt,
       updatedAt: item.updatedAt
     }))
+  },
+
+  async getTotalItemsByUserId(user_id) {
+    return await CartItem.countDocuments({ user_id });
   },
 
   async addToCart(user_id, product_id, quantity) {

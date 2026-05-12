@@ -4,9 +4,9 @@ const auth = require("../middleware/auth");
 
 const UserAddressController = require("../controllers/UserAddressController");
 
+router.get("/", auth, UserAddressController.getAllByUserId);
+router.get("/default", auth, UserAddressController.getDefaultByUserId);
 router.post("/", auth, UserAddressController.create);
-router.get("/", auth, UserAddressController.getAll);
-router.get("/:id", auth, UserAddressController.getById);
 router.put("/:id", auth, UserAddressController.update);
 router.delete("/:id", auth, UserAddressController.delete);
 
@@ -24,6 +24,22 @@ module.exports = router;
  *     responses:
  *       200:
  *         description: List of user addresses (sorted by default first)
+ *       401:
+ *         description: Unauthorized
+ */
+
+/**
+ * @openapi
+ * /api/user-addresses/default:
+ *   get:
+ *     summary: Get default address of the authenticated user
+ *     tags:
+ *       - User Addresses
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Default address
  *       401:
  *         description: Unauthorized
  */
@@ -61,6 +77,15 @@ module.exports = router;
  *                 type: string
  *                 maxLength: 255
  *                 example: 123 Đường Lê Lợi
+ *               ward_code:
+ *                 type: Number
+ *                 example: 1
+ *               district_code:
+ *                 type: Number
+ *                 example: 1
+ *               city_code:
+ *                 type: Number
+ *                 example: 1
  *               ward:
  *                 type: string
  *                 maxLength: 100
@@ -81,29 +106,6 @@ module.exports = router;
  *         description: Address created successfully
  *       400:
  *         description: Invalid input or user not found
- */
-
-/**
- * @openapi
- * /api/user-addresses/{id}:
- *   get:
- *     summary: Get a single address by ID (must belong to authenticated user)
- *     tags:
- *       - User Addresses
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Address ID
- *     responses:
- *       200:
- *         description: Address details
- *       404:
- *         description: Address not found
  */
 
 /**
@@ -134,6 +136,12 @@ module.exports = router;
  *                 type: string
  *               address_line:
  *                 type: string
+ *               ward_code:
+ *                 type: Number
+ *               district_code:
+ *                 type: Number
+ *               city_code:
+ *                 type: Number
  *               ward:
  *                 type: string
  *               district:

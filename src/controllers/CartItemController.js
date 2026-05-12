@@ -7,6 +7,20 @@ const CartItemController = {
 
       const result = await CartItemService.getAllByUserId(user_id);
 
+      if (!result) return res.status(404).json({ message: "User not found" });
+
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  async getTotalItemsByUserId(req, res) {
+    try {
+      const user_id = req.user.userId;
+
+      const result = await CartItemService.getTotalItemsByUserId(user_id);
+
       res.json(result);
     } catch (error) {
       res.status(500).json({ message: error.message });
