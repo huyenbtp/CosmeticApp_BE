@@ -3,6 +3,45 @@ const Staff = require("../models/Staff");
 const { validateCreateOrder } = require("../validators/order.validator");
 
 const OrderController = {
+  async getAll(req, res) {
+    try {
+      const orders = await OrderService.getAllOrders();
+      res.json(orders);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  async getByUserId(req, res) {
+    try {
+      const user_id = req.user.userId;
+      const { page, limit, status } = req.query;
+
+      const result = await OrderService.getOrdersByUserId({
+        user_id,
+        page: Number(page) || 1,
+        limit: Number(limit) || 10,
+        status,
+      });
+
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  async getById(req, res) {
+    try {
+      const order = await OrderService.getOrderById(req.params.id);
+
+      if (!order) return res.status(404).json({ message: "Order not found" });
+
+      res.json(order);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+
   async create(req, res) {
     try {
       validateCreateOrder(req.body);
@@ -20,7 +59,7 @@ const OrderController = {
   async pay(req, res) {
     try {
       const { order_id, payment_method } = req.body;
-      
+
       if (payment_method && !["cash", "bank_transfer"].includes(payment_method)) {
         throw new Error("Invalid payment_method");
       }
@@ -33,28 +72,6 @@ const OrderController = {
       res.status(201).json(result);
     } catch (error) {
       res.status(400).json({ message: error.message });
-    }
-  },
-
-
-  async getAll(req, res) {
-    try {
-      const orders = await OrderService.getAllOrders();
-      res.json(orders);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  },
-
-  async getById(req, res) {
-    try {
-      const order = await OrderService.getOrderById(req.params.id);
-
-      if (!order) return res.status(404).json({ message: "Order not found" });
-
-      res.json(order);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
     }
   },
 

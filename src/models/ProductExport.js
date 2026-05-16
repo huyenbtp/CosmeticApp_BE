@@ -33,6 +33,11 @@ const ProductExportSchema = new mongoose.Schema(
       maxlength: 1000,
       default: ""
     },
+    type: {
+      type: String,
+      enum: ["sale", "discard", "adjust"],
+      default: "sale"
+    },
   },
   {
     timestamps: true

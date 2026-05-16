@@ -12,6 +12,11 @@ const ExportItemSchema = new mongoose.Schema(
       required: true,
       ref: 'Product'
     },
+    batch_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: 'InventoryBatch'
+    },
     unit_price: {
       type: Number,
       required: true,

@@ -22,6 +22,15 @@ function normalizeCode(name) {
     .slice(0, 3);
 }
 
+const availableStockField = {
+  available_stock: {
+    $subtract: [
+      "$total_stock",
+      "$reserved_stock"
+    ]
+  }
+};
+
 const buildBaseProductPipeline = (product_id) => [
   {
     $match: {
@@ -106,11 +115,11 @@ const ProductService = {
         throw new Error("Product not found");
       }
 
-      if (product.stock_quantity < item.quantity) {
+      if (product.available_stock < item.quantity) {
         throw new Error(`Product ${product.name} is out of stock`);
       }
 
-      product.stock_quantity -= item.quantity;
+      product.reserved_stock += item.quantity;
       await product.save({ session });
     }
   },
@@ -126,8 +135,8 @@ const ProductService = {
           _id: null,
           minPrice: { $min: "$selling_price" },
           maxPrice: { $max: "$selling_price" },
-          minStock: { $min: "$stock_quantity" },
-          maxStock: { $max: "$stock_quantity" }
+          minStock: { $min: "$total_stock" },
+          maxStock: { $max: "$total_stock" }
         }
       }
     ]);
@@ -244,9 +253,9 @@ const ProductService = {
     if (status) filter.status = status;
 
     if (minStock !== undefined || maxStock !== undefined) {
-      filter.stock_quantity = {};
-      if (minStock !== undefined) filter.stock_quantity.$gte = minStock;
-      if (maxStock !== undefined) filter.stock_quantity.$lte = maxStock;
+      filter.total_stock = {};
+      if (minStock !== undefined) filter.total_stock.$gte = minStock;
+      if (maxStock !== undefined) filter.total_stock.$lte = maxStock;
     }
 
     if (minPrice !== undefined || maxPrice !== undefined) {
@@ -304,7 +313,7 @@ const ProductService = {
                   _id: "$brand._id",
                   name: "$brand.name",
                 },
-                stock_quantity: 1,
+                total_stock: 1,
                 selling_price: 1,
                 status: 1,
                 image: 1,
@@ -332,6 +341,9 @@ const ProductService = {
 
     const pipeline = [
       ...buildBaseProductPipeline(product_id),
+      {
+        $addFields: availableStockField
+      },
       {
         $lookup: {
           from: "orderitems",
@@ -385,7 +397,7 @@ const ProductService = {
             $ifNull: [{ $arrayElemAt: ["$salesStats.totalRevenue", 0] }, 0],
           },
           lastImportDate: {
-            $arrayElemAt: ["$importStats.importDate", 0],
+            $arrayElemAt: ["$importStats.createdAt", 0],
           },
         },
       },
@@ -408,7 +420,9 @@ const ProductService = {
           import_price: 1,
           description: 1,
           image: 1,
-          stock_quantity: 1,
+          total_stock: 1,
+          reserved_stock: 1,
+          available_stock: 1,
           status: 1,
           createdAt: 1,
           updatedAt: 1,
@@ -430,6 +444,9 @@ const ProductService = {
   async getProductByIdCustomer({ user_id, product_id }) {
     const pipeline = [
       ...buildBaseProductPipeline(product_id),
+      {
+        $addFields: availableStockField
+      },
       {
         $lookup: {
           from: "orderitems",
@@ -507,7 +524,7 @@ const ProductService = {
           selling_price: 1,
           description: 1,
           image: 1,
-          stock_quantity: 1,
+          available_stock: 1,
           totalSold: 1,
           status: 1,
           avg_rating: 1,

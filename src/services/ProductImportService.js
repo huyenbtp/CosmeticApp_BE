@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 const ProductImport = require("../models/ProductImport");
 const ImportItem = require("../models/ImportItem");
 const Product = require("../models/Product");
+const InventoryBatch = require("../models/InventoryBatch");
+const Staff = require("../models/Staff");
 const generateCode = require("../utils/codeGenerator");
 
 const ProductImportService = {
@@ -10,12 +12,17 @@ const ProductImportService = {
     session.startTransaction();
 
     try {
-      const { staff_id, notes = "", items } = data;
+      const { user_id, notes = "", status = "draft", type = "purchase", items } = data;
       /**
          * items: [
-         *   { product_id, unit_price, quantity }
+         *   { product_id, batch_code, unit_price, quantity, mfg_date, exp_date }
          * ]
          */
+
+      const staff = await Staff.findOne({ user_id });
+      if (!staff) {
+        throw new Error("Staff not found");
+      }
 
       if (!items || items.length === 0) {
         throw new Error("Import items is required");
@@ -24,7 +31,6 @@ const ProductImportService = {
       /* ---------- TÍNH TOÁN ---------- */
       let totalAmount = 0;
       let totalItems = 0;
-      let productsUpdated = 0;
 
       for (const item of items) {
         totalAmount += item.unit_price * item.quantity;
@@ -40,16 +46,18 @@ const ProductImportService = {
       /* ---------- TẠO IMPORT ---------- */
       const productImport = await ProductImport.create([{
         import_code: importCode,
-        created_by: staff_id,
+        created_by: staff._id,
         total_amount: totalAmount,
         items_imported: totalItems,
         products_updated: items.length,
         notes,
+        status,
+        type,
       }], { session });
 
       const importId = productImport[0]._id;
 
-      /* ---------- TẠO IMPORT ITEMS + UPDATE STOCK ---------- */
+      /* ---------- TẠO IMPORT ITEMS ---------- */
       for (const item of items) {
         const product = await Product.findById(item.product_id).session(session);
         if (!product) {
@@ -60,16 +68,12 @@ const ProductImportService = {
         await ImportItem.create([{
           import_id: importId,
           product_id: item.product_id,
+          batch_code: item.batch_code,
           unit_price: item.unit_price,
           quantity: item.quantity,
+          mfg_date: item.mfg_date,
+          exp_date: item.exp_date
         }], { session });
-
-        // update stock
-        product.stock_quantity += item.quantity;
-        product.import_price = item.unit_price;
-        await product.save({ session });
-
-        productsUpdated++;
       }
 
       await session.commitTransaction();
@@ -81,6 +85,158 @@ const ProductImportService = {
       session.endSession();
       throw error;
     }
+  },
+
+  async updateProductImport(id, data) {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      const productImport = await ProductImport.findById(id).session(session);
+      if (!productImport) {
+        throw new Error("Import not found");
+      }
+
+      if (productImport.status !== "draft") {
+        throw new Error("Only draft import is editable!");
+      }
+
+      await ImportItem.deleteMany({ import_id: id }).session(session);
+
+      const { notes = "", type = "purchase", items } = data;
+      /**
+         * items: [
+         *   { product_id, batch_code, unit_price, quantity, mfg_date, exp_date }
+         * ]
+         */
+
+      if (!items || items.length === 0) {
+        throw new Error("Import items is required");
+      }
+
+      /* ---------- TÍNH TOÁN ---------- */
+      let totalAmount = 0;
+      let totalItems = 0;
+
+      for (const item of items) {
+        totalAmount += item.unit_price * item.quantity;
+        totalItems += item.quantity;
+      }
+
+      /* ---------- UPDATE IMPORT ---------- */
+      productImport.total_amount = totalAmount;
+      productImport.items_imported = totalItems;
+      productImport.products_updated = items.length;
+      productImport.notes = notes;
+      productImport.type = type;
+      await productImport.save({session});
+
+      /* ---------- TẠO IMPORT ITEMS ---------- */
+      for (const item of items) {
+        const product = await Product.findById(item.product_id).session(session);
+        if (!product) {
+          throw new Error("Product not found");
+        }
+
+        // create import item
+        await ImportItem.create([{
+          import_id: id,
+          product_id: item.product_id,
+          batch_code: item.batch_code,
+          unit_price: item.unit_price,
+          quantity: item.quantity,
+          mfg_date: item.mfg_date,
+          exp_date: item.exp_date
+        }], { session });
+      }
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return productImport;
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
+  },
+
+  async confirmImport(user_id, import_id) {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      const productImport = await ProductImport.findById(import_id).session(session);
+      if (!productImport) {
+        throw new Error("Import not found");
+      }
+
+      if (productImport.status !== "draft") {
+        throw new Error("Can not confirm");
+      }
+
+      const staff = await Staff.findOne({ user_id });
+      if (!staff) {
+        throw new Error("Staff not found");
+      }
+      productImport.confirmed_by = staff._id;
+      productImport.confirmedAt = new Date();
+      productImport.status = "confirmed";
+      await productImport.save({ session });
+
+      const items = await ImportItem.find({ import_id: import_id })
+        .lean()
+        .session(session);
+
+      for (const item of items) {
+        const product = await Product.findById(item.product_id).session(session);
+        if (!product) {
+          throw new Error("Product not found");
+        }
+
+        // update stock
+        product.total_stock += item.quantity;
+        product.import_price = item.unit_price;
+        await product.save({ session });
+      }
+
+      const newBatches = items.map((item) => ({
+        product_id: item.product_id,
+        import_item_id: item._id,
+        batch_code: item.batch_code,
+        mfg_date: item.mfg_date,
+        exp_date: item.exp_date,
+        imported_qty: item.quantity,
+        remaining_qty: item.quantity,
+      }));
+
+      const results = await InventoryBatch.insertMany(newBatches, { session });
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return results.length;
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
+  },
+
+  async deleteImport(id) {
+    const productImport = await ProductImport.findById(id);
+    if (!productImport) {
+      throw new Error("Import not found");
+    }
+
+    if (productImport.status !== "draft") {
+      throw new Error("Only delete draft import!");
+    }
+
+    await ImportItem.deleteMany({ import_id: id });
+
+    await productImport.deleteOne();
+    return true;
   },
 
   async getProductImportStats() {
@@ -106,13 +262,14 @@ const ProductImportService = {
     page,
     limit,
     q = "",
-    by = "import_code",
     fromDate,
     toDate,
     minTotal,
     maxTotal,
+    status,
+    type,
   }) {
-    //console.log(page, limit, q, by, new Date(fromDate), new Date(toDate), minTotal, maxTotal)
+    //console.log(page, limit, q, new Date(fromDate), new Date(toDate), minTotal, maxTotal)
     const skip = (page - 1) * limit;
     const filter = {};
 
@@ -129,36 +286,30 @@ const ProductImportService = {
       if (maxTotal !== undefined) filter.total_amount.$lte = maxTotal;
     }
 
-    /* ---------- SEARCH ---------- */
-    const searchRegex = q ? new RegExp(q, "i") : null;
+    if (status) filter.status = status;
+    if (type) filter.type = type;
 
+    /* ---------- SEARCH ---------- */
     const searchFilter = q
-      ? (() => {
-        switch (by) {
-          case "import_code":
-            return { import_code: searchRegex };
-          case "staff_name":
-            return { "staff.full_name": searchRegex };
-          case "staff_code":
-            return { "staff.staff_code": searchRegex };
-          default:
-            return {};
-        }
-      })()
+      ? {
+        $or: [
+          { import_code: { $regex: q, $options: "i" } },
+        ],
+      }
       : {};
 
     /* ---------- AGGREGATE ---------- */
     const pipeline = [
+      { $match: { ...filter, ...searchFilter } },
       {
         $lookup: {
           from: "staffs",
-          localField: "staff_id",
+          localField: "created_by",
           foreignField: "_id",
           as: "staff",
         },
       },
       { $unwind: { path: "$staff", preserveNullAndEmptyArrays: true } },
-      { $match: { ...filter, ...searchFilter } },
       { $sort: { createdAt: -1 } },
 
       {
@@ -178,6 +329,8 @@ const ProductImportService = {
                   full_name: "$staff.full_name",
                   staff_code: "$staff.staff_code",
                 },
+                status: 1,
+                type: 1,
               },
             },
           ],
@@ -200,7 +353,8 @@ const ProductImportService = {
 
   async getProductImportById(id) {
     const importDoc = await ProductImport.findById(id)
-      .populate("staff_id", "full_name staff_code")
+      .populate("created_by", "full_name staff_code")
+      .populate("confirmed_by", "full_name staff_code")
       .lean();
 
     if (!importDoc) {
@@ -211,11 +365,12 @@ const ProductImportService = {
       .populate("product_id", "name sku image")
       .lean();
 
-    const { staff_id, ...rest } = importDoc;
+    const { created_by, confirmed_by, ...rest } = importDoc;
 
     return {
       ...rest,
-      staff: staff_id,
+      createdStaff: created_by,
+      confirmedStaff: confirmed_by || null,
       items: details.map(({ product_id, ...d }) => ({
         ...d,
         product: product_id,
@@ -223,13 +378,13 @@ const ProductImportService = {
     };
   },
 
-  async updateProductImportNote(id, note) {
+  async updateProductImportNotes(id, notes) {
     const productImport = await ProductImport.findById(id);
     if (!productImport) {
       throw new Error("Product import not found");
     }
 
-    productImport.note = note;
+    productImport.notes = notes;
     await productImport.save();
 
     return productImport;

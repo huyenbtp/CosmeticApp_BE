@@ -12,6 +12,10 @@ const ImportItemSchema = new mongoose.Schema(
       required: true,
       ref: 'Product'
     },
+    batch_code: {
+      type: String,
+      required: true,
+    },
     unit_price: {
       type: Number,
       required: true,
@@ -21,6 +25,14 @@ const ImportItemSchema = new mongoose.Schema(
       type: Number,
       default: 1,
       min: 1
+    },
+    mfg_date: {
+      type: Date,
+      default: null,
+    },
+    exp_date: {
+      type: Date,
+      default: null,
     },
   },
   {

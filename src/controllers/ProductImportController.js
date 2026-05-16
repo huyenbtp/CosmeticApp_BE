@@ -1,18 +1,12 @@
 const ProductImportService = require("../services/ProductImportService");
-const Staff = require("../models/Staff");
 
-class ProductImportController {
+const ProductImportController = {
   async create(req, res) {
     try {
-      const { note, items } = req.body;
+      const user_id = req.user.userId;
+      const { notes, status, type, items } = req.body;
 
       /* ---------- BASIC VALIDATION ---------- */
-      const staff = await Staff.findOne({ user_id: req.user.user_id });
-
-      if (!staff) {
-        throw new Error("Staff not found");
-      }
-
       if (!Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ message: "items must be a non-empty array" });
       }
@@ -30,8 +24,10 @@ class ProductImportController {
       }
 
       const result = await ProductImportService.createProductImport({
-        staff_id: staff._id,
-        note,
+        user_id,
+        notes,
+        status,
+        type,
         items,
       });
 
@@ -39,7 +35,46 @@ class ProductImportController {
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
-  }
+  },
+
+  async update(req, res) {
+    try {
+      const updated = await ProductImportService.updateProductImport(req.params.id, req.body);
+
+      if (!updated) return res.status(404).json({ message: "Import not found" });
+
+      res.json(updated);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+    }
+  },
+
+  async confirmImport(req, res) {
+    try {
+      const user_id = req.user.userId;
+      const import_id = req.params.id;
+
+      const result = await ProductImportService.confirmImport(user_id, import_id);
+
+      res.json({ newBatchesCount: result });
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+    }
+  },
+
+  async deleteImport(req, res) {
+    try {
+      const import_id = req.params.id;
+
+      const result = await ProductImportService.deleteImport(import_id);
+
+      if (!result) return res.status(404).json({ message: "Product import not found" });
+
+      res.json({ message: "Product import deleted" });
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+    }
+  },
 
   async getStats(req, res) {
     try {
@@ -48,7 +83,7 @@ class ProductImportController {
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
-  }
+  },
 
   async getProductImports(req, res) {
     try {
@@ -56,11 +91,12 @@ class ProductImportController {
         page,
         limit,
         q,
-        by,
         fromDate,
         toDate,
         minTotal,
         maxTotal,
+        status,
+        type,
       } = req.query;
 
       /* ---------- VALIDATE DATE ---------- */
@@ -101,18 +137,19 @@ class ProductImportController {
         page: Number(page) || 1,
         limit: Number(limit) || 7,
         q,
-        by,
         fromDate,
         toDate,
         minTotal: minTotal !== undefined ? Number(minTotal) : undefined,
         maxTotal: maxTotal !== undefined ? Number(maxTotal) : undefined,
+        status,
+        type,
       });
 
       res.json(result);
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
-  }
+  },
 
   async getById(req, res) {
     try {
@@ -124,22 +161,22 @@ class ProductImportController {
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
-  }
+  },
 
-  async updateNote(req, res) {
+  async updateNotes(req, res) {
     try {
-      const { note } = req.body;
+      const { notes } = req.body;
 
-      const updated = await ProductImportService.updateProductImportNote(
+      const updated = await ProductImportService.updateProductImportNotes(
         req.params.id,
-        note
+        notes
       );
 
       res.json(updated);
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
-  }
+  },
 }
 
-module.exports = new ProductImportController();
+module.exports = ProductImportController;

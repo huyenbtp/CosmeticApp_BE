@@ -12,6 +12,15 @@ const ProductImportSchema = new mongoose.Schema(
       required: true,
       ref: 'Staff',
     },
+    confirmed_by: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Staff',
+      default: null,
+    },
+    confirmedAt: {
+      type: Date,
+      default: null
+    },
     products_updated: {
       type: Number,
       required: true,
@@ -30,6 +39,16 @@ const ProductImportSchema = new mongoose.Schema(
     notes: {
       type: String,
       default: ""
+    },
+    status: {
+      type: String,
+      enum: ["draft", "confirmed"],
+      default: "draft"
+    },
+    type: {
+      type: String,
+      enum: ["purchase", "customer_return"],
+      default: "purchase"
     },
   },
   {

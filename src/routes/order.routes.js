@@ -6,6 +6,7 @@ const requireRole = require("../middleware/checkPermission");
 const OrderController = require("../controllers/OrderController");
 
 router.get("/", auth, OrderController.getAll);
+router.get("/user", auth, OrderController.getByUserId);
 router.get("/:id", auth, OrderController.getById);
 router.post("/", auth, OrderController.create);
 router.put("/pay", auth, OrderController.pay);
@@ -24,6 +25,50 @@ module.exports = router;
  *     responses:
  *       200:
  *         description: List of orders
+ */
+
+/**
+ * @openapi
+ * /api/orders/user:
+ *   get:
+ *     summary: Get orders of the authenticated user 
+ *     tags:
+ *       - Orders
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: ["pending", "confirmed", "shipping", "delivered", "cancelled", "returned"]
+ *         description: Order status
+ *     responses:
+ *       200:
+ *         description: Order list
+ */
+
+/**
+ * @openapi
+ * /api/orders/{id}:
+ *   get:
+ *     summary: Get order by ID
+ *     tags:
+ *       - Orders
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the order to retrieve
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Order details
  */
 
 /**
@@ -97,25 +142,6 @@ module.exports = router;
  *     responses:
  *       201:
  *         description: Order created successfully
- */
-
-/**
- * @openapi
- * /api/orders/{id}:
- *   get:
- *     summary: Get order by ID
- *     tags:
- *       - Orders
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: ID of the order to retrieve
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Order details
  */
 
 /**

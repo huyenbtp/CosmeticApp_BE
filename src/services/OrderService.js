@@ -2,11 +2,71 @@ const mongoose = require("mongoose");
 const Order = require("../models/Order");
 const OrderItem = require("../models/OrderItem");
 const User = require("../models/User");
+const Product = require("../models/Product");
 const generateCode = require("../utils/codeGenerator");
 
 const ProductService = require("./ProductService");
 
 const OrderService = {
+  async getAllOrders() {
+    return await Order.find();
+  },
+
+  async getOrdersByUserId({
+    user_id,
+    page = 1,
+    limit = 10,
+    status,
+  }) {
+    const query = {
+      user_id
+    };
+
+    // filter status
+    if (status) {
+      query.order_status = status;
+    }
+
+    // pagination
+    const skip = (page - 1) * limit;
+
+    // fetch data
+    const orders = await Order.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    // check has more
+    const total = await Order.countDocuments(query);
+
+    return {
+      orders,
+      hasMore: skip + orders.length < total,
+    };
+  },
+
+  async getOrderById(id) {
+    const orderDoc = await Order.findById(id)
+      .lean();
+
+    if (!orderDoc) {
+      throw new Error("Order not found");
+    }
+
+    const items = await OrderItem.find({ order_id: id })
+      .populate("product_id", "name image")
+      .lean();
+
+    return {
+      ...orderDoc,
+      items: items.map(item => ({
+        ...item,
+        product_id: item.product_id._id,
+        product: item.product_id,
+      }))
+    }
+  },
+
   async createOrder(data) {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -43,6 +103,19 @@ const OrderService = {
       for (const item of items) {
         subtotal += item.unit_price * item.quantity;
         totalItems += item.quantity;
+
+        /* ---------- TRỪ STOCK ---------- */
+        const product = await Product.findById(item.product_id).session(session);
+        if (!product) {
+          throw new Error("Product not found");
+        }
+
+        if (product.available_stock < item.quantity) {
+          throw new Error(`Some product is out of stock`);
+        }
+
+        product.reserved_stock += item.quantity;
+        await product.save({ session });
       }
 
       /* ---------- TOTAL DỰ KIẾN ---------- */
@@ -91,9 +164,6 @@ const OrderService = {
 
       await OrderItem.insertMany(orderItems, { session });
 
-      /* ---------- TRỪ STOCK ---------- */
-      //await ProductService.validateAndDeduct(items, session);
-
       await session.commitTransaction();
       session.endSession();
 
@@ -103,14 +173,6 @@ const OrderService = {
       session.endSession();
       throw error;
     }
-  },
-
-  async getAllOrders() {
-    return await Order.find();
-  },
-
-  async getOrderById(id) {
-    return await Order.findById(id);
   },
 
   async updateOrderNotes(id, notes) {

@@ -42,7 +42,12 @@ const ProductSchema = new mongoose.Schema(
       type: String,
       default: ""
     },
-    stock_quantity: {
+    total_stock: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    reserved_stock: {
       type: Number,
       default: 0,
       min: 0,
@@ -68,5 +73,17 @@ const ProductSchema = new mongoose.Schema(
     timestamps: true, // tự tạo createdAt + updatedAt
   }
 );
+
+ProductSchema.virtual("available_stock").get(function () {
+  return this.total_stock - this.reserved_stock;
+});
+
+ProductSchema.set("toJSON", {
+  virtuals: true
+});
+
+ProductSchema.set("toObject", {
+  virtuals: true
+});
 
 module.exports = mongoose.model("Product", ProductSchema);
