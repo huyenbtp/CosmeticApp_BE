@@ -20,6 +20,7 @@ const OrderStatusHistoryController = {
 
       const orderStatusHistory = await OrderStatusHistoryService.create(
         user_id,
+        "staff",
         order_id,
         status,
         notes

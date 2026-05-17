@@ -44,15 +44,35 @@ const OrderController = {
 
   async create(req, res) {
     try {
+      const user_id = req.user.userId;
       validateCreateOrder(req.body);
 
       const result = await OrderService.createOrder({
+        user_id,
         ...req.body,
       });
 
       res.status(201).json(result);
     } catch (error) {
       res.status(400).json({ message: error.message });
+    }
+  },
+
+  async customerCancel(req, res) {
+    try {
+      const user_id = req.user.userId;
+
+      const cancelled = await OrderService.customerCancelOrder(
+        user_id,
+        req.params.id,
+        req.body
+      );
+
+      if (!cancelled) return res.status(404).json({ message: "Order not found" });
+
+      res.json({ message: "Order cancelled" });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
     }
   },
 

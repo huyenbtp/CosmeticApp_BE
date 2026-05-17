@@ -1,6 +1,5 @@
 function validateCreateOrder(data) {
   const {
-    user_id,
     items,
     shipping_fee,
     payment_method,
@@ -10,10 +9,6 @@ function validateCreateOrder(data) {
     district,
     city,
   } = data;
-
-  if (!user_id) {
-    throw new Error('User id is required');
-  }
 
   /* ---------- ITEMS ---------- */
   if (!Array.isArray(items) || items.length === 0) {

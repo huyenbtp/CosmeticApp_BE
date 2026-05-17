@@ -9,6 +9,7 @@ router.get("/", auth, OrderController.getAll);
 router.get("/user", auth, OrderController.getByUserId);
 router.get("/:id", auth, OrderController.getById);
 router.post("/", auth, OrderController.create);
+router.post("/:id/cancel", auth, OrderController.customerCancel);
 router.put("/pay", auth, OrderController.pay);
 router.put("/:id", auth, OrderController.update);
 router.delete("/:id", auth, OrderController.delete);
@@ -45,7 +46,7 @@ module.exports = router;
  *         name: status
  *         schema:
  *           type: string
- *           enum: ["pending", "confirmed", "shipping", "delivered", "cancelled", "returned"]
+ *           enum: ["pending", "confirmed", "packed", "shipping", "delivered", "cancelled", "returned"]
  *         description: Order status
  *     responses:
  *       200:
@@ -142,6 +143,34 @@ module.exports = router;
  *     responses:
  *       201:
  *         description: Order created successfully
+ */
+
+/**
+ * @openapi
+ * /api/orders/{id}/cancel:
+ *   post:
+ *     summary: Customer cancel their order
+ *     tags:
+ *       - Orders
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the order to be cancelled
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reason:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Order cancelled
  */
 
 /**

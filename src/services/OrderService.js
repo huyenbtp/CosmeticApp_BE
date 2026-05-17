@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const Order = require("../models/Order");
 const OrderItem = require("../models/OrderItem");
+const CartItem = require("../models/CartItem");
+const OrderStatusHistory = require("../models/OrderStatusHistory");
 const User = require("../models/User");
 const Product = require("../models/Product");
 const generateCode = require("../utils/codeGenerator");
@@ -75,6 +77,7 @@ const OrderService = {
       const {
         user_id,
         items,
+        cartItemIds,
         shipping_fee,
         payment_method,
         notes = "",
@@ -164,6 +167,21 @@ const OrderService = {
 
       await OrderItem.insertMany(orderItems, { session });
 
+      await OrderStatusHistory.create(
+        [{
+          order_id: order._id,
+          status: "pending",
+          updated_by: user_id,
+          updated_by_name: "",
+          updated_by_type: "customer",
+        }],
+        { session }
+      );
+
+      await CartItem.deleteMany({
+        _id: { $in: cartItemIds }
+      }).session(session);
+
       await session.commitTransaction();
       session.endSession();
 
@@ -173,6 +191,31 @@ const OrderService = {
       session.endSession();
       throw error;
     }
+  },
+
+  async customerCancelOrder(user_id, order_id, data) {
+    const order = await Order.findById(order_id);
+    if (!order) {
+      throw new Error("Order not found");
+    }
+
+    if (order.order_status === "confirmed") {
+      throw new Error("Confirmed order cannot be canceled")
+    }
+
+    const { reason = "" } = data;
+
+    await OrderStatusHistory.create({
+      order_id: order_id,
+      status: "cancelled",
+      notes: reason,
+      updated_by: user_id,
+      updated_by_name: "",
+      updated_by_type: "customer",
+    });
+
+    order.order_status = "cancelled";
+    return await order.save();
   },
 
   async updateOrderNotes(id, notes) {

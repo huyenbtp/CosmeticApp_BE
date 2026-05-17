@@ -9,7 +9,7 @@ const OrderStatusHistorySchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "confirmed", "shipping", "delivered", "cancelled", "returned"],
+      enum: ["pending", "confirmed", "packed", "shipping", "delivered", "cancelled", "returned"],
       required: true,
     },
     notes: {
@@ -20,12 +20,29 @@ const OrderStatusHistorySchema = new mongoose.Schema(
     updated_by: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: "Staff",
+      ref: "User",
     },
+    updated_by_name: {
+      type: String,
+      default: ""
+    },
+    updated_by_type: {
+      type: String,
+      enum: ["staff", "customer"],
+      default: "staff",
+    }
   },
   {
     timestamps: { updatedAt: true },
   }
 );
+
+OrderStatusHistorySchema.index({
+  order_id: 1,
+});
+
+OrderStatusHistorySchema.index({
+  status: 1,
+});
 
 module.exports = mongoose.model("OrderStatusHistory", OrderStatusHistorySchema);

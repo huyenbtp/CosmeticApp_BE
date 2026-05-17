@@ -12,6 +12,7 @@ const cloudinary = require("../config/cloudinary");
 const getPublicIdFromUrl = require("../utils/getImagePublicId");
 const CategoryService = require("../services/CategoryService");
 const generateCode = require("../utils/codeGenerator");
+const Counter = require("../models/Counter");
 
 function normalizeCode(name) {
   return name
@@ -584,6 +585,16 @@ const ProductService = {
         throw new Error("SKU already exists");
       }
     } else {
+      const key = "product";
+
+      const counter = await Counter.findOneAndUpdate(
+        { key },
+        { $inc: { seq: 1 } },
+        { new: true, upsert: true }
+      );
+      sku = String(counter.seq).padStart(6, '0');
+
+      /** 
       // format: SER-LOR-0001
       const categoryCode = normalizeCode(category.name);
       const brandCode = normalizeCode(brand.name);
@@ -592,6 +603,7 @@ const ProductService = {
         entity: "product",
         prefix: `${categoryCode}-${brandCode}`
       });
+      */
       productData.sku = sku;
     }
     const product = await Product.create(productData);
@@ -665,6 +677,16 @@ const ProductService = {
     if ("sku" in data) {
       // FE gửi sku rỗng → generate mới
       if (sku === "") {
+        const key = "product";
+
+        const counter = await Counter.findOneAndUpdate(
+          { key },
+          { $inc: { seq: 1 } },
+          { new: true, upsert: true }
+        );
+        sku = String(counter.seq).padStart(6, '0');
+
+        /** 
         // format: SER-LOR-0001
         const categoryCode = normalizeCode(category.name);
         const brandCode = normalizeCode(brand.name);
@@ -673,6 +695,7 @@ const ProductService = {
           entity: "product",
           prefix: `${categoryCode}-${brandCode}`
         });
+        */
         product.sku = sku;
       }
       // FE gửi sku khác → check trùng
