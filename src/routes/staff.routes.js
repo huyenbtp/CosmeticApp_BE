@@ -7,8 +7,8 @@ const upload = require("../middleware/upload");
 const StaffController = require("../controllers/StaffController");
 
 router.get("/", auth, requireRole(["admin"]), StaffController.getStaffs);
-router.get("/:id", auth, StaffController.getById);
-router.get("/admin-edit/:id", auth, requireRole(["admin"]), StaffController.getByIdToAdminEdit);
+router.get("/:id", auth, StaffController.getByUserId);
+router.get("/admin-edit/:id", auth, requireRole(["admin"]), StaffController.getByUserIdToAdminEdit);
 router.post("/", auth, requireRole(["admin"]), upload.single("image"), StaffController.create);
 router.put("/:id", auth, requireRole(["admin"]), upload.single("image"), StaffController.update);
 router.delete("/:id", auth, requireRole(["admin"]), StaffController.delete);
@@ -58,14 +58,14 @@ module.exports = router;
  * @openapi
  * /api/staffs/{id}:
  *   get:
- *     summary: Get full staff information by id
+ *     summary: Get full staff information by user id
  *     tags:
  *       - Staffs
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: Id of the staff to get
+ *         description: User id of the staff to get
  *         schema:
  *           type: string
  *     responses:
@@ -79,14 +79,14 @@ module.exports = router;
  * @openapi
  * /api/staffs/admin-edit/{id}:
  *   get:
- *     summary: Get staff information by id for admin to edit
+ *     summary: Get staff information by user id for admin to edit
  *     tags:
  *       - Staffs
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: Id of the staff to get
+ *         description: User id of the staff to get
  *         schema:
  *           type: string
  *     responses:

@@ -28,18 +28,18 @@ const StaffController = {
     }
   },
 
-  async getById(req, res) {
+  async getByUserId(req, res) {
     try {
-      const staff = await StaffService.getById(req.params.id);
+      const staff = await StaffService.getByUserId(req.params.id);
       res.json(staff);
     } catch (e) {
       res.status(404).json({ message: e.message });
     }
   },
 
-  async getByIdToAdminEdit(req, res) {
+  async getByUserIdToAdminEdit(req, res) {
     try {
-      const staff = await StaffService.getByIdToAdminEdit(req.params.id);
+      const staff = await StaffService.getByUserIdToAdminEdit(req.params.id);
       res.json(staff);
     } catch (e) {
       res.status(404).json({ message: e.message });

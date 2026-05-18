@@ -4,6 +4,7 @@ const OrderItem = require("../models/OrderItem");
 const CartItem = require("../models/CartItem");
 const OrderStatusHistory = require("../models/OrderStatusHistory");
 const User = require("../models/User");
+const Customer = require("../models/Customer");
 const Product = require("../models/Product");
 const generateCode = require("../utils/codeGenerator");
 
@@ -12,6 +13,101 @@ const ProductService = require("./ProductService");
 const OrderService = {
   async getAllOrders() {
     return await Order.find();
+  },
+
+  async getOrders({
+    page,
+    limit,
+    q = "",
+    fromDate,
+    toDate,
+    payment_method,
+    order_status,
+  }) {
+    //console.log(page, limit, q)
+    const skip = (page - 1) * limit;
+    const filter = {};
+
+    /* ---------- FILTER ---------- */
+    if (fromDate || toDate) {
+      filter.createdAt = {};
+      if (fromDate) filter.createdAt.$gte = new Date(fromDate);
+      if (toDate) filter.createdAt.$lte = new Date(toDate);
+    }
+
+    if (payment_method) filter.payment_method = payment_method;
+    if (order_status) filter.order_status = order_status;
+
+    /* ---------- SEARCH ---------- */
+    const searchFilter = q
+      ? {
+        $or: [
+          { order_code: { $regex: q, $options: "i" } },
+        ],
+      }
+      : {};
+
+    /* ---------- AGGREGATE ---------- */
+    const pipeline = [
+      { $match: { ...filter, ...searchFilter } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user_id",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "customers",
+          localField: "user_id",
+          foreignField: "user_id",
+          as: "customer",
+        },
+      },
+      { $unwind: { path: "$customer", preserveNullAndEmptyArrays: true } },
+      { $sort: { createdAt: -1 } },
+
+      {
+        $facet: {
+          data: [
+            { $skip: skip },
+            { $limit: limit },
+            {
+              $project: {
+                order_code: 1,
+                user_id: 1,
+                customer: {
+                  _id: "$customer._id",
+                  full_name: "$customer.full_name",
+                  phone: "$customer.phone",
+                  email: "$user.email",
+                },
+                total_items: 1,
+                total_estimated: 1,
+                payment_method: 1,
+                order_status: 1,
+                createdAt: 1,
+              },
+            },
+          ],
+          total: [{ $count: "count" }],
+        },
+      },
+    ];
+
+    const result = await Order.aggregate(pipeline);
+
+    return {
+      data: result[0].data,
+      pagination: {
+        total: result[0].total[0]?.count || 0,
+        page,
+        limit,
+      },
+    };
   },
 
   async getOrdersByUserId({
@@ -49,18 +145,32 @@ const OrderService = {
 
   async getOrderById(id) {
     const orderDoc = await Order.findById(id)
+      .populate("user_id", "email")
       .lean();
 
     if (!orderDoc) {
       throw new Error("Order not found");
     }
 
+    const customer = await Customer.findOne({ user_id: orderDoc.user_id._id })
+
+    if (!customer) {
+      throw new Error("Customer not found");
+    }
+
     const items = await OrderItem.find({ order_id: id })
-      .populate("product_id", "name image")
+      .populate("product_id", "name sku image")
       .lean();
 
     return {
       ...orderDoc,
+      user_id: orderDoc.user_id._id,
+      customer: {
+        _id: customer._id,
+        full_name: customer.full_name,
+        phone: customer.phone,
+        email: orderDoc.user_id.email,
+      },
       items: items.map(item => ({
         ...item,
         product_id: item.product_id._id,
@@ -122,7 +232,7 @@ const OrderService = {
       }
 
       /* ---------- TOTAL DỰ KIẾN ---------- */
-      let estimatedTotal = subtotal - shipping_fee;
+      let estimatedTotal = subtotal + shipping_fee;
       if (estimatedTotal < 0) estimatedTotal = 0;
 
       const orderCode = await generateCode({

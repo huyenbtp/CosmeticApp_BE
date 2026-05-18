@@ -6,6 +6,7 @@ const requireRole = require("../middleware/checkPermission");
 const OrderController = require("../controllers/OrderController");
 
 router.get("/", auth, OrderController.getAll);
+router.get("/pagination", auth, requireRole(["admin", "warehouse_manager", "order_processing"]), OrderController.getOrders);
 router.get("/user", auth, OrderController.getByUserId);
 router.get("/:id", auth, OrderController.getById);
 router.post("/", auth, OrderController.create);
@@ -26,6 +27,45 @@ module.exports = router;
  *     responses:
  *       200:
  *         description: List of orders
+ */
+
+/**
+ * @openapi
+ * /api/orders/pagination:
+ *   get:
+ *     summary: Get orders with pagination, search and filters
+ *     tags:
+ *       - Orders
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 7 }
+ *       - in: query
+ *         name: q
+ *         schema: { type: string }
+ *         description: Search query
+ *       - in: query
+ *         name: fromDate
+ *         schema: { type: Date }
+ *       - in: query
+ *         name: toDate
+ *         schema: { type: Date }
+ *       - in: query
+ *         name: payment_method
+ *         schema:
+ *           type: string
+ *           enum: [cod, bank_transfer]
+ *       - in: query
+ *         name: order_status
+ *         schema:
+ *           type: string
+ *           enum: ["pending", "confirmed", "packed", "shipping", "delivered", "cancelled", "returned"]
+ *     responses:
+ *       200:
+ *         description: Orders list with pagination
  */
 
 /**

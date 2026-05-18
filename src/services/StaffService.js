@@ -106,8 +106,8 @@ const StaffService = {
     };
   },
 
-  async getById(id) {
-    const staff = await Staff.findById(id)
+  async getByUserId(user_id) {
+    const staff = await Staff.findOne({ user_id })
       .populate("user_id", "email role_id is_active createdAt updatedAt")
 
     if (!staff) throw new Error("Staff not found");
@@ -127,7 +127,7 @@ const StaffService = {
       updatedAt: staff.updatedAt,
       user: staff.user_id
         ? {
-          _id: staff.user_id._id,
+          _id: user_id,
           email: staff.user_id.email,
           role: role.name,
           is_active: staff.user_id.is_active,
@@ -137,8 +137,8 @@ const StaffService = {
     };
   },
 
-  async getByIdToAdminEdit(id) {
-    const staff = await Staff.findById(id)
+  async getByUserIdToAdminEdit(user_id) {
+    const staff = await Staff.findOne({ user_id })
       .populate("user_id", "role_id is_active");
 
     if (!staff) throw new Error("Staff not found");

@@ -12,6 +12,49 @@ const OrderController = {
     }
   },
 
+  async getOrders(req, res) {
+    try {
+      const {
+        page,
+        limit,
+        q,
+        fromDate,
+        toDate,
+        payment_method,
+        order_status,
+      } = req.query;
+
+      /* ---------- VALIDATE DATE ---------- */
+      if (fromDate && isNaN(Date.parse(fromDate))) {
+        return res.status(400).json({ message: "Invalid fromDate" });
+      }
+
+      if (toDate && isNaN(Date.parse(toDate))) {
+        return res.status(400).json({ message: "Invalid toDate" });
+      }
+
+      if (fromDate && toDate && new Date(fromDate) > new Date(toDate)) {
+        return res
+          .status(400)
+          .json({ message: "fromDate must be before toDate" });
+      }
+
+      const result = await OrderService.getOrders({
+        page: Number(page) || 1,
+        limit: Number(limit) || 7,
+        q,
+        fromDate,
+        toDate,
+        payment_method,
+        order_status,
+      });
+
+      res.json(result);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  },
+
   async getByUserId(req, res) {
     try {
       const user_id = req.user.userId;
