@@ -38,4 +38,16 @@ const ExportItemSchema = new mongoose.Schema(
   }
 );
 
+ExportItemSchema.index({
+  export_id: 1,
+});
+
+ExportItemSchema.index({
+  product_id: 1,
+});
+
+ExportItemSchema.index({
+  batch_id: 1,
+});
+
 module.exports = mongoose.model('ExportItem', ExportItemSchema);

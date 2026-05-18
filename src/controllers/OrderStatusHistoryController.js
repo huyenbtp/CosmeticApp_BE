@@ -16,13 +16,13 @@ const OrderStatusHistoryController = {
   async create(req, res) {
     try {
       const user_id = req.user.userId;
-      const { order_id, status, notes } = req.body;
+      const { order_id, newStatus, notes } = req.body;
 
       const orderStatusHistory = await OrderStatusHistoryService.create(
         user_id,
         "staff",
         order_id,
-        status,
+        newStatus,
         notes
       );
 

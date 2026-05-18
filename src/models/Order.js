@@ -89,4 +89,22 @@ const OrderSchema = new mongoose.Schema(
   }
 );
 
+
+OrderSchema.index({
+  payment_method: 1,
+});
+
+OrderSchema.index({
+  payment_status: 1,
+});
+
+OrderSchema.index({
+  order_status: 1,
+});
+
+OrderSchema.index({
+  user_id: 1,
+  order_status: 1,
+});
+
 module.exports = mongoose.model("Order", OrderSchema);

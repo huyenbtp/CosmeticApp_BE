@@ -56,4 +56,12 @@ const ProductImportSchema = new mongoose.Schema(
   }
 );
 
+ProductImportSchema.index({
+  status: 1,
+});
+
+ProductImportSchema.index({
+  type: 1,
+});
+
 module.exports = mongoose.model("ProductImport", ProductImportSchema);

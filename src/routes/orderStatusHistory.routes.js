@@ -1,12 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/auth");
+const requireRole = require("../middleware/checkPermission");
 
 const OrderStatusHistoryController = require("../controllers/OrderStatusHistoryController");
 
-router.get("/:id", OrderStatusHistoryController.getAllByOrderId);
-router.post("/", auth, OrderStatusHistoryController.create);
-router.delete("/:id", OrderStatusHistoryController.delete);
+router.get("/:id", auth, requireRole(["admin", "order_processing"]), OrderStatusHistoryController.getAllByOrderId);
+router.post("/", auth, requireRole(["admin", "order_processing"]), OrderStatusHistoryController.create);
+router.delete("/:id", auth, requireRole(["admin", "order_processing"]), OrderStatusHistoryController.delete);
 
 module.exports = router;
 
@@ -49,7 +50,7 @@ module.exports = router;
  *             properties:
  *               order_id:
  *                 type: string
- *               status:
+ *               newStatus:
  *                 type: string
  *               notes:
  *                 type: string

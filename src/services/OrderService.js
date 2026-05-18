@@ -217,13 +217,15 @@ const OrderService = {
         subtotal += item.unit_price * item.quantity;
         totalItems += item.quantity;
 
-        /* ---------- TRỪ STOCK ---------- */
+        /* ---------- RESERVE STOCK ---------- */
         const product = await Product.findById(item.product_id).session(session);
         if (!product) {
           throw new Error("Product not found");
         }
 
-        if (product.available_stock < item.quantity) {
+        const available_stock = product.total_stock - product.reserved_stock;
+
+        if (available_stock < item.quantity) {
           throw new Error(`Some product is out of stock`);
         }
 
@@ -304,28 +306,62 @@ const OrderService = {
   },
 
   async customerCancelOrder(user_id, order_id, data) {
-    const order = await Order.findById(order_id);
-    if (!order) {
-      throw new Error("Order not found");
+    const session = await mongoose.startSession();
+
+    try {
+      session.startTransaction();
+
+      const order = await Order.findById(order_id).session(session);
+      if (!order) {
+        throw new Error("Order not found");
+      }
+
+      if (order.order_status === "confirmed") {
+        throw new Error("Confirmed order cannot be canceled")
+      }
+
+      const orderItems = await OrderItem.find({ order_id }).session(session);
+
+      for (const item of orderItems) {
+        await Product.findByIdAndUpdate(
+          item.product_id,
+          {
+            $inc: {
+              reserved_stock: -item.quantity,
+            },
+          },
+          { session }
+        );
+      }
+
+      const { reason = "" } = data;
+
+      const history = await OrderStatusHistory.create(
+        [
+          {
+            order_id: order_id,
+            status: "cancelled",
+            notes: reason,
+            updated_by: user_id,
+            updated_by_name: "",
+            updated_by_type: "customer",
+          },
+        ],
+        { session }
+      );
+
+      order.order_status = "cancelled";
+      await order.save({ session });
+
+      await session.commitTransaction();
+
+      return history[0];
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
     }
-
-    if (order.order_status === "confirmed") {
-      throw new Error("Confirmed order cannot be canceled")
-    }
-
-    const { reason = "" } = data;
-
-    await OrderStatusHistory.create({
-      order_id: order_id,
-      status: "cancelled",
-      notes: reason,
-      updated_by: user_id,
-      updated_by_name: "",
-      updated_by_type: "customer",
-    });
-
-    order.order_status = "cancelled";
-    return await order.save();
   },
 
   async updateOrderNotes(id, notes) {

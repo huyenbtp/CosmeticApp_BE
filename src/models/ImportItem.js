@@ -40,4 +40,12 @@ const ImportItemSchema = new mongoose.Schema(
   }
 );
 
+ImportItemSchema.index({
+  import_id: 1,
+});
+
+ImportItemSchema.index({
+  product_id: 1,
+});
+
 module.exports = mongoose.model("ImportItem", ImportItemSchema);

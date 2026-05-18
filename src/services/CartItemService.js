@@ -6,7 +6,7 @@ const CartItemService = {
   async getAllByUserId(user_id) {
     const result = await CartItem.find({ user_id })
       .sort({ updatedAt: -1 })
-      .populate("product_id", "name selling_price image stock_quantity");
+      .populate("product_id", "name selling_price image total_stock");
 
     return result.map(item => ({
       _id: item._id,
@@ -16,7 +16,7 @@ const CartItemService = {
         name: item.product_id.name,
         price: item.product_id.selling_price,
         image: item.product_id.image,
-        available_quantity: item.product_id.stock_quantity
+        available_quantity: item.product_id.total_stock
       },
       quantity: item.quantity,
       createdAt: item.createdAt,

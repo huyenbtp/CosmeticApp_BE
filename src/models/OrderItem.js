@@ -28,4 +28,9 @@ const OrderItemSchema = new mongoose.Schema(
   }
 );
 
+OrderItemSchema.index({
+  order_id: 1,
+  product_id: 1,
+}, { unique: true });
+
 module.exports = mongoose.model("OrderItem", OrderItemSchema);

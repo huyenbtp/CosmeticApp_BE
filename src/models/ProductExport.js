@@ -33,15 +33,24 @@ const ProductExportSchema = new mongoose.Schema(
       maxlength: 1000,
       default: ""
     },
+    order_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Order',
+      default: null,
+    },
     type: {
       type: String,
-      enum: ["sale", "discard", "adjust"],
-      default: "sale"
+      enum: ["sales", "discard", "adjust"],
+      default: "sales"
     },
   },
   {
     timestamps: true
   }
 );
+
+ProductExportSchema.index({
+  type: 1,
+});
 
 module.exports = mongoose.model("ProductExport", ProductExportSchema);
