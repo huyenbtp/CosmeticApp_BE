@@ -15,4 +15,9 @@ const ProductTagSchema = new mongoose.Schema(
   }
 );
 
+ProductTagSchema.index({
+  product_id: 1,
+  tag_id: 1,
+}, { unique: true });
+
 module.exports = mongoose.model("ProductTag", ProductTagSchema);

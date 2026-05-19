@@ -15,4 +15,9 @@ const ProductSkinTypeSchema = new mongoose.Schema(
   }
 );
 
+ProductSkinTypeSchema.index({
+  product_id: 1,
+  skin_type_id: 1,
+}, { unique: true });
+
 module.exports = mongoose.model("ProductSkinType", ProductSkinTypeSchema);

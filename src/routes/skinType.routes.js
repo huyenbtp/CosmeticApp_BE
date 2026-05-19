@@ -1,14 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/auth");
+const requireRole = require("../middleware/checkPermission");
 
 const SkinTypeController = require("../controllers/SkinTypeController");
 
-router.post("/",SkinTypeController.create);
 router.get("/", SkinTypeController.getAll);
-router.get("/:id", SkinTypeController.getById);
-router.put("/:id",  SkinTypeController.update);
-router.delete("/:id", SkinTypeController.delete);
+router.get("/:id", auth, requireRole(["admin"]), SkinTypeController.getById);
+router.post("/", auth, requireRole(["admin"]), SkinTypeController.create);
+router.put("/:id", auth, requireRole(["admin"]), SkinTypeController.update);
+router.delete("/:id", auth, requireRole(["admin"]), SkinTypeController.delete);
 
 module.exports = router;
 
@@ -16,21 +17,21 @@ module.exports = router;
  * @openapi
  * /api/skin-types:
  *   get:
- *     summary: Get all skinTypes
+ *     summary: Get all skin types
  *     tags:
- *       - SkinTypes
+ *       - Skin Types
  *     responses:
  *       200:
- *         description: List of skinTypes
+ *         description: List of skin types
  */
 
 /**
  * @openapi
  * /api/skin-types:
  *   post:
- *     summary: Create a new skinType
+ *     summary: Create a new skin type
  *     tags:
- *       - SkinTypes
+ *       - Skin Types
  *     requestBody:
  *       required: true
  *       content:
@@ -44,40 +45,40 @@ module.exports = router;
  *                 type: string
  *     responses:
  *       201:
- *         description: SkinType created
+ *         description: Skin type created
  */
 
 /**
  * @openapi
  * /api/skin-types/{id}:
  *   get:
- *     summary: Get skinType by ID
+ *     summary: Get skin type by ID
  *     tags:
- *       - SkinTypes
+ *       - Skin Types
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: Id of the skinType
+ *         description: Id of the skin type
  *         schema:
  *           type: string
  *     responses:
  *       200:
- *         description: SkinType details
+ *         description: Skin type details
  */
 
 /**
  * @openapi
  * /api/skin-types/{id}:
  *   put:
- *     summary: Update skinType information
+ *     summary: Update skin type information
  *     tags:
- *       - SkinTypes
+ *       - Skin Types
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: Id of the skinType to be updated
+ *         description: Id of the skin type to be updated
  *         schema:
  *           type: string
  *     requestBody:
@@ -91,24 +92,24 @@ module.exports = router;
  *                 type: string
  *     responses:
  *       200:
- *         description: SkinType updated
+ *         description: Skin type updated
  */
 
 /**
  * @openapi
  * /api/skin-types/{id}:
  *   delete:
- *     summary: Delete skinType
+ *     summary: Delete skin type
  *     tags:
  *       - SkinTypes
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: Id of the skinType to be deleted
+ *         description: Id of the skin type to be deleted
  *         schema:
  *           type: string
  *     responses:
  *       200:
- *         description: SkinType deleted
+ *         description: Skin type deleted
  */

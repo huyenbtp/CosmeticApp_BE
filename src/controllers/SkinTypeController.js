@@ -1,6 +1,6 @@
 const SkinTypeService = require("../services/SkinTypeService");
 
-class SkinTypeController {
+const SkinTypeController = {
   async create(req, res) {
     try {
       const skinType = await SkinTypeService.createSkinType(req.body);
@@ -8,7 +8,7 @@ class SkinTypeController {
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
-  }
+  },
 
   async getAll(req, res) {
     try {
@@ -17,7 +17,7 @@ class SkinTypeController {
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
-  }
+  },
 
   async getById(req, res) {
     try {
@@ -29,7 +29,7 @@ class SkinTypeController {
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
-  }
+  },
 
   async update(req, res) {
     try {
@@ -41,7 +41,7 @@ class SkinTypeController {
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
-  }
+  },
 
   async delete(req, res) {
     try {
@@ -53,7 +53,7 @@ class SkinTypeController {
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
-  }
+  },
 }
 
-module.exports = new SkinTypeController();
+module.exports = SkinTypeController;

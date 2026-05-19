@@ -11,6 +11,7 @@ router.get("/", BrandController.getAll);
 router.get("/:id", auth, BrandController.getById);
 router.post("/", auth, requireRole(["admin"]), upload.single("logo"), BrandController.create);
 router.put("/:id", auth, requireRole(["admin"]), upload.single("logo"), BrandController.update);
+router.patch("/:id/status", auth, requireRole(["admin"]), BrandController.updateStatus);
 router.delete("/:id", auth, requireRole(["admin"]), BrandController.delete);
 
 module.exports = router;
@@ -71,6 +72,9 @@ module.exports = router;
  *             properties:
  *               name:
  *                 type: string
+ *               status:
+ *                 type: string
+ *                 example: active
  *     responses:
  *       201:
  *         description: Brand created
@@ -99,10 +103,45 @@ module.exports = router;
  *             properties:
  *               name:
  *                 type: string
+ *               status:
+ *                 type: string
+ *                 example: active
  * 
  *     responses:
  *       200:
  *         description: Brand updated
+ */
+
+/**
+ * @openapi
+ * /api/brands/{id}/status:
+ *   patch:
+ *     summary: Update brand status
+ *     tags:
+ *       - Brands
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Id of the brand to be updated
+ *         schema:
+ *           type: string
+ *         example: "6943db6002bfd4a421467504"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [active, archived]
+ *                 example: active
+ * 
+ *     responses:
+ *       200:
+ *         description: Brand's status updated
  */
 
 /**

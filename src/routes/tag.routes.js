@@ -1,14 +1,17 @@
 const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/auth");
+const requireRole = require("../middleware/checkPermission");
 
 const TagController = require("../controllers/TagController");
 
-router.post("/",TagController.create);
 router.get("/", TagController.getAll);
-router.get("/:id", TagController.getById);
-router.put("/:id",  TagController.update);
-router.delete("/:id", TagController.delete);
+router.get("/pagination", auth, requireRole(["admin"]), TagController.getTagsPaginated);
+router.get("/:id", auth, requireRole(["admin"]), TagController.getById);
+router.post("/", auth, requireRole(["admin"]), TagController.create);
+router.put("/:id", auth, requireRole(["admin"]), TagController.update);
+router.patch("/:id/status", auth, requireRole(["admin"]), TagController.updateStatus);
+router.delete("/:id", auth, requireRole(["admin"]), TagController.delete);
 
 module.exports = router;
 
@@ -16,9 +19,15 @@ module.exports = router;
  * @openapi
  * /api/tags:
  *   get:
- *     summary: Get all tags
+ *     summary: Get all tags by status filter
  *     tags:
  *       - Tags
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [active, archived]
  *     responses:
  *       200:
  *         description: List of tags
@@ -26,23 +35,30 @@ module.exports = router;
 
 /**
  * @openapi
- * /api/tags:
- *   post:
- *     summary: Create a new tag
+ * /api/tags/pagination:
+ *   get:
+ *     summary: Get tags pagination, search and filters
  *     tags:
  *       - Tags
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 7 }
+ *       - in: query
+ *         name: q
+ *         schema: { type: string }
+ *         description: Search query
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [active, archived]
  *     responses:
- *       201:
- *         description: Tag created
+ *       200:
+ *         description: List of tags with pagination
  */
 
 /**
@@ -62,6 +78,30 @@ module.exports = router;
  *     responses:
  *       200:
  *         description: Tag details
+ */
+
+/**
+ * @openapi
+ * /api/tags:
+ *   post:
+ *     summary: Create a new tag
+ *     tags:
+ *       - Tags
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               status:
+ *                 type: string
+ *                 example: active
+ *     responses:
+ *       201:
+ *         description: Tag created
  */
 
 /**
@@ -87,9 +127,44 @@ module.exports = router;
  *             properties:
  *               name:
  *                 type: string
+ *               status:
+ *                 type: string
+ *                 example: active
  *     responses:
  *       200:
  *         description: Tag updated
+ */
+
+/**
+ * @openapi
+ * /api/tags/{id}/status:
+ *   patch:
+ *     summary: Update tag status
+ *     tags:
+ *       - Tags
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Id of the tag to be updated
+ *         schema:
+ *           type: string
+ *         example: "6943db6002bfd4a421467504"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [active, archived]
+ *                 example: active
+ * 
+ *     responses:
+ *       200:
+ *         description: Tag's status updated
  */
 
 /**

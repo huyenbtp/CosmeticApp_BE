@@ -2,7 +2,7 @@ const Brand = require("../models/Brand");
 const cloudinary = require("../config/cloudinary");
 const getPublicIdFromUrl = require("../utils/getImagePublicId");
 
-class BrandService {
+const BrandService = {
   async getBrandsPaginated({
     page,
     limit,
@@ -71,7 +71,15 @@ class BrandService {
         limit,
       },
     };
-  }
+  },
+
+  async getAllBrands() {
+    return await Brand.find();
+  },
+
+  async getBrandById(id) {
+    return await Brand.findById(id);
+  },
 
   async createBrand(data) {
 
@@ -82,15 +90,7 @@ class BrandService {
     }
 
     return await Brand.create(data);
-  }
-
-  async getAllBrands() {
-    return await Brand.find();
-  }
-
-  async getBrandById(id) {
-    return await Brand.findById(id);
-  }
+  },
 
   async updateBrand(id, updateData) {
     const brand = await Brand.findById(id);
@@ -146,11 +146,21 @@ class BrandService {
 
     await brand.save();
     return brand;
-  }
+  },
+
+  async updateStatus(id, status) {
+    const brand = await Brand.findById(id);
+    if (!brand) {
+      throw new Error("Brand not found");
+    }
+
+    brand.status = status;
+    return await brand.save();
+  },
 
   async deleteBrand(id) {
     return await Brand.findByIdAndDelete(id);
-  }
+  },
 }
 
-module.exports = new BrandService();
+module.exports = BrandService;

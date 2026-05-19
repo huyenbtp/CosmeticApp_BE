@@ -1,6 +1,6 @@
 const BrandService = require("../services/BrandService");
 
-class BrandController {
+const BrandController = {
   async getBrandsPaginated(req, res) {
     try {
       const {
@@ -21,7 +21,7 @@ class BrandController {
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
-  }
+  },
 
   async getAll(req, res) {
     try {
@@ -30,7 +30,7 @@ class BrandController {
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
-  }
+  },
 
   async getById(req, res) {
     try {
@@ -42,7 +42,7 @@ class BrandController {
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
-  }
+  },
 
   async create(req, res) {
     try {
@@ -57,7 +57,7 @@ class BrandController {
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
-  }
+  },
 
   async update(req, res) {
     try {
@@ -74,7 +74,30 @@ class BrandController {
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
-  }
+  },
+
+  async updateStatus(req, res) {
+    try {
+      const { status } = req.body;
+
+      if (!status) {
+        return res.status(400).json({ message: "Status is required" });
+      }
+
+      if (!["active", "archived"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status value" });
+      }
+
+      const updated = await BrandService.updateStatus(
+        req.params.id,
+        status
+      );
+
+      res.json(updated);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+    }
+  },
 
   async delete(req, res) {
     try {
@@ -86,7 +109,7 @@ class BrandController {
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
-  }
+  },
 }
 
-module.exports = new BrandController();
+module.exports = BrandController;
