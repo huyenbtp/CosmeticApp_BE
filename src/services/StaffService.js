@@ -181,15 +181,9 @@ const StaffService = {
         throw new Error("Invalid role for staff");
       }
 
-      const prefixMap = {
-        admin: "ADM",
-        warehouse_manager: "WAM",
-        order_processing: "OPS"
-      };
-      const prefix = prefixMap[role.name] || "STF";
       const staffCode = await generateCode({
         entity: "staff",
-        prefix,
+        pad: 6,
         session,
       });
 

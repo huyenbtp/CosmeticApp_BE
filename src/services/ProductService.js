@@ -585,27 +585,14 @@ const ProductService = {
         throw new Error("SKU already exists");
       }
     } else {
-      const key = "product";
-
-      const counter = await Counter.findOneAndUpdate(
-        { key },
-        { $inc: { seq: 1 } },
-        { new: true, upsert: true }
-      );
-      sku = String(counter.seq).padStart(6, '0');
-
-      /** 
-      // format: SER-LOR-0001
-      const categoryCode = normalizeCode(category.name);
-      const brandCode = normalizeCode(brand.name);
-
       sku = await generateCode({
         entity: "product",
-        prefix: `${categoryCode}-${brandCode}`
+        pad: 6,
       });
-      */
+
       productData.sku = sku;
     }
+
     const product = await Product.create(productData);
 
     const productSkinTypes = skinTypeIds.map(id => ({
@@ -677,25 +664,11 @@ const ProductService = {
     if ("sku" in data) {
       // FE gửi sku rỗng → generate mới
       if (sku === "") {
-        const key = "product";
-
-        const counter = await Counter.findOneAndUpdate(
-          { key },
-          { $inc: { seq: 1 } },
-          { new: true, upsert: true }
-        );
-        sku = String(counter.seq).padStart(6, '0');
-
-        /** 
-        // format: SER-LOR-0001
-        const categoryCode = normalizeCode(category.name);
-        const brandCode = normalizeCode(brand.name);
-
         sku = await generateCode({
           entity: "product",
-          prefix: `${categoryCode}-${brandCode}`
+          pad: 6,
         });
-        */
+
         product.sku = sku;
       }
       // FE gửi sku khác → check trùng

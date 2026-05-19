@@ -40,7 +40,9 @@ const ExportItemSchema = new mongoose.Schema(
 
 ExportItemSchema.index({
   export_id: 1,
-});
+  product_id: 1,
+  batch_id: 1,
+}, { unique: true });
 
 ExportItemSchema.index({
   product_id: 1,

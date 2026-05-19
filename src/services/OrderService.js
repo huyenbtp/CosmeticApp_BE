@@ -6,6 +6,7 @@ const OrderStatusHistory = require("../models/OrderStatusHistory");
 const User = require("../models/User");
 const Customer = require("../models/Customer");
 const Product = require("../models/Product");
+const Counter = require("../models/Counter");
 const generateCode = require("../utils/codeGenerator");
 
 const ProductService = require("./ProductService");
@@ -226,7 +227,7 @@ const OrderService = {
         const available_stock = product.total_stock - product.reserved_stock;
 
         if (available_stock < item.quantity) {
-          throw new Error(`Some product is out of stock`);
+          throw new Error(`Insufficient stock for product ${product.name}`);
         }
 
         product.reserved_stock += item.quantity;
@@ -239,7 +240,6 @@ const OrderService = {
 
       const orderCode = await generateCode({
         entity: "order",
-        prefix: "ORD",
         pad: 6,
         session,
       });

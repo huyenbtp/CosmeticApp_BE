@@ -10,6 +10,7 @@ const InventoryBatch = require("../models/InventoryBatch");
 const ProductExport = require("../models/ProductExport");
 const ExportItem = require("../models/ExportItem");
 const generateCode = require("../utils/codeGenerator");
+const ProductExportService = require("./ProductExportService");
 
 const statusType = ["pending", "confirmed", "packed", "shipping", "delivered", "cancelled", "returned"];
 
@@ -118,97 +119,11 @@ const OrderStatusHistoryService = {
        * Tạo phiếu xuất khi chuyển sang packed
        */
       if (currentStatus === "confirmed" && newStatus === "packed") {
-        const orderItems = await OrderItem.find({ order_id }).session(session);
-
-        const exportCode = await generateCode({
-          entity: "productexport",
-          prefix: "EXP",
+        await ProductExportService.createSalesProductExport({
+          staff_id: profile._id,
+          order_id,
           session,
         });
-
-        let totalAmount = 0;
-        let totalItems = 0;
-
-        for (const item of orderItems) {
-          totalAmount += item.unit_price * item.quantity;
-          totalItems += item.quantity;
-        }
-
-        const exportDoc = await ProductExport.create(
-          [{
-            export_code: exportCode,
-            created_by: profile._id,
-            products_updated: orderItems.length,
-            items_exported: totalItems,
-            total_amount: totalAmount,
-            order_id,
-            type: "sales"
-          }],
-          { session }
-        );
-
-        const exportId = exportDoc[0]._id;
-
-        for (const item of orderItems) {
-          let remainingNeed = item.quantity;
-
-          /**
-           * FEFO:
-           * 1. exp_date ASC
-           * 2. remaining_qty ASC
-           */
-          const batches = await InventoryBatch.find({
-            product_id: item.product_id,
-            remaining_qty: { $gt: 0 },
-          })
-            .sort({
-              exp_date: 1,
-              remaining_qty: 1,
-            })
-            .session(session);
-
-          let totalAvailable = batches.reduce((sum, b) => sum + b.remaining_qty, 0);
-
-          if (totalAvailable < item.quantity) {
-            throw new Error(`Insufficient stock for product ${item.product_id}`);
-          }
-
-          for (const batch of batches) {
-            if (remainingNeed <= 0) { break; }
-
-            const exportQty = Math.min(remainingNeed, batch.remaining_qty);
-
-            batch.remaining_qty -= exportQty;
-
-            await batch.save({ session });
-
-            await ExportItem.create(
-              [
-                {
-                  export_id: exportId,
-                  product_id: item.product_id,
-                  batch_id: batch._id,
-                  unit_price: item.unit_price,
-                  quantity: exportQty,
-                },
-              ],
-              { session }
-            );
-
-            remainingNeed -= exportQty;
-          }
-
-          await Product.findByIdAndUpdate(
-            item.product_id,
-            {
-              $inc: {
-                total_stock: -item.quantity,
-                reserved_stock: -item.quantity,
-              },
-            },
-            { session }
-          );
-        }
       }
 
       if (newStatus === "cancelled") {

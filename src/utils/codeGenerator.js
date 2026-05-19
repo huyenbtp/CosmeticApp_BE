@@ -2,13 +2,10 @@ const Counter = require('../models/Counter');
 
 async function generateCode({
   entity,
-  prefix,
-  year = new Date().getFullYear(),
-  pad = 4,
-  separator = '-',
+  pad = 6,
   session
 }) {
-  const key = `${entity}_${prefix}_${year}`;
+  const key = `${entity}`;
 
   const counter = await Counter.findOneAndUpdate(
     { key },
@@ -16,11 +13,7 @@ async function generateCode({
     { new: true, upsert: true, session }
   );
 
-  return [
-    prefix,
-    year,
-    String(counter.seq).padStart(pad, '0')
-  ].join(separator);
+  return String(counter.seq).padStart(pad, '0');
 }
 
 module.exports = generateCode;

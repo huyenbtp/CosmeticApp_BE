@@ -39,7 +39,7 @@ const ProductImportService = {
 
       const importCode = await generateCode({
         entity: "productimport",
-        prefix: "IMP",
+        pad: 6,
         session,
       });
 
@@ -129,7 +129,7 @@ const ProductImportService = {
       productImport.products_updated = items.length;
       productImport.notes = notes;
       productImport.type = type;
-      await productImport.save({session});
+      await productImport.save({ session });
 
       /* ---------- TẠO IMPORT ITEMS ---------- */
       for (const item of items) {
