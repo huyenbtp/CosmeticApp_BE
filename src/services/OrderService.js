@@ -227,7 +227,7 @@ const OrderService = {
         const available_stock = product.total_stock - product.reserved_stock;
 
         if (available_stock < item.quantity) {
-          throw new Error(`Insufficient stock for product ${product.name}`);
+          throw new Error("Insufficient stock");
         }
 
         product.reserved_stock += item.quantity;

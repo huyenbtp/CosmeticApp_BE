@@ -20,12 +20,36 @@ const InventoryBatchService = {
     /* ---------- FILTER ---------- */
     if (expiredStatus) {
       filter.exp_date = {};
+      const now = new Date();
 
-      if (expiredStatus === "less-than-1-month") {
+      if (expiredStatus === "expired") {
+        filter.exp_date = { $lte: now };
+
+      } else if (expiredStatus === "less-than-1-month") {
+        // Hết hạn trong vòng 1 tháng tới
+        const oneMonthLater = new Date();
+        oneMonthLater.setMonth(now.getMonth() + 1);
+
+        filter.exp_date = { $gte: now, $lte: oneMonthLater };
 
       } else if (expiredStatus === "1-3-months") {
+        // Hết hạn trong khoảng từ 1 đến 3 tháng tới
+        const oneMonthLater = new Date();
+        oneMonthLater.setMonth(now.getMonth() + 1);
+
+        const threeMonthsLater = new Date();
+        threeMonthsLater.setMonth(now.getMonth() + 3);
+
+        filter.exp_date = { $gt: oneMonthLater, $lte: threeMonthsLater };
 
       } else if (expiredStatus === "3-6-months") {
+        const threeMonthsLater = new Date();
+        threeMonthsLater.setMonth(now.getMonth() + 3);
+
+        const sixMonthsLater = new Date();
+        sixMonthsLater.setMonth(now.getMonth() + 6);
+
+        filter.exp_date = { $gt: threeMonthsLater, $lte: sixMonthsLater };
 
       }
     }

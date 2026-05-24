@@ -106,7 +106,7 @@ const RecommendationService = {
         const targetId =
           sim.similar_item_id.toString();
 
-        // skip interacted items
+        // skip purchased items
         if (purchasedItemIds.includes(targetId)) {
           return;
         }
@@ -161,7 +161,7 @@ const RecommendationService = {
     const res = await Product.find({ status: "published", })
       .limit(limit)
       .populate("brand_id", "name")
-      .sort({ updatedAt: -1, });
+      .sort({ createdAt: -1, });
 
     return res.map(item => ({
       _id: item._id,

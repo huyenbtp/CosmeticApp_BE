@@ -5,7 +5,7 @@ const requireRole = require("../middleware/checkPermission");
 
 const OrderStatusHistoryController = require("../controllers/OrderStatusHistoryController");
 
-router.get("/:id", auth, requireRole(["admin", "order_processing"]), OrderStatusHistoryController.getAllByOrderId);
+router.get("/:id", auth, OrderStatusHistoryController.getAllByOrderId);
 router.post("/", auth, requireRole(["admin", "order_processing"]), OrderStatusHistoryController.create);
 router.delete("/:id", auth, requireRole(["admin", "order_processing"]), OrderStatusHistoryController.delete);
 
