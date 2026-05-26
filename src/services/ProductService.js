@@ -154,10 +154,14 @@ const ProductService = {
     };
   },
 
-  async getProductsInfinite({
+  async getProductsInfinite({               //for customer
     q = "",
     page,
     limit,
+    category_slug,
+    brand_id,
+    minPrice,
+    maxPrice,
   }) {
     const skip = (page - 1) * limit;
 
@@ -165,6 +169,33 @@ const ProductService = {
     const filter = {
       status: "published",
     };
+
+    if (category_slug) {
+      const category = await Category.findOne({ slug: category_slug });
+
+      if (!category) {
+        return {
+          data: [],
+          pagination: { total: 0, page, limit },
+        };
+      }
+
+      const categoryIds = await CategoryService.getAllChildCategoryIds(category._id);
+
+      filter.category_id = {
+        $in: categoryIds.map((id) => new mongoose.Types.ObjectId(id)),
+      };
+    }
+
+    if (brand_id) {
+      filter.brand_id = new mongoose.Types.ObjectId(brand_id);
+    }
+
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      filter.selling_price = {};
+      if (minPrice !== undefined) filter.selling_price.$gte = minPrice;
+      if (maxPrice !== undefined) filter.selling_price.$lte = maxPrice;
+    }
 
     /* ---------- SEARCH ---------- */
     if (q) {
@@ -191,29 +222,40 @@ const ProductService = {
       /* ---------- SORT ---------- */
       { $sort: { updatedAt: -1 } },
 
-      /* ---------- PAGINATION ---------- */
-      { $skip: skip },
-      { $limit: limit },
-
       /* ---------- RESPONSE SHAPE ---------- */
       {
-        $project: {
-          _id: 1,
-          name: 1,
-          selling_price: 1,
-          image: 1,
-          avg_rating: 1,
-          brand: "$brand.name",
+        $facet: {
+          data: [
+            { $skip: skip },
+            { $limit: limit },
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                selling_price: 1,
+                image: 1,
+                avg_rating: 1,
+                brand: "$brand.name",
+              },
+            },
+          ],
+          total: [{ $count: "count" }],
         },
       },
     ];
 
     const result = await Product.aggregate(pipeline);
-    console.log(result)
-    return result;
+    //console.log(result)
+    const results = result[0].data;
+    const hasMore = (skip + results.length) < (result[0].total[0]?.count || 0);
+
+    return {
+      results,
+      hasMore
+    };
   },
 
-  async getProductsPaginated({
+  async getProductsPaginated({              //for internal
     page,
     limit,
     q = "",

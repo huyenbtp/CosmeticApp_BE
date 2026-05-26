@@ -55,8 +55,8 @@ const StaffController = {
 
       validateCreateStaff(data);
 
-      const staff = await StaffService.create(data);
-      res.status(201).json(staff);
+      const result = await StaffService.create(data);
+      res.status(201).json(result);
     } catch (e) {
       res.status(400).json({ message: e.message });
     }
@@ -71,7 +71,7 @@ const StaffController = {
 
       validateUpdateStaff(data);
 
-      const updated = await StaffService.update(req.params.id, data);
+      const updated = await StaffService.update(req.params.userId, data);
 
       if (!updated) return res.status(404).json({ message: "Staff not found" });
 

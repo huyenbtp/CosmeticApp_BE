@@ -18,12 +18,24 @@ class ProductController {
 
   async getProductsInfinite(req, res) {
     try {
-      const { page, limit, q } = req.query;
+      const {
+        page,
+        limit,
+        q,
+        category_slug,
+        brand_id,
+        minPrice,
+        maxPrice,
+      } = req.query;
 
       const result = await ProductService.getProductsInfinite({
         page: Number(page) || 1,
         limit: Number(limit) || 20,
         q,
+        category_slug,
+        brand_id,
+        minPrice,
+        maxPrice,
       });
 
       res.json(result);

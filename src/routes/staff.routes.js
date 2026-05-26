@@ -10,7 +10,7 @@ router.get("/", auth, requireRole(["admin"]), StaffController.getStaffs);
 router.get("/:id", auth, StaffController.getByUserId);
 router.get("/admin-edit/:id", auth, requireRole(["admin"]), StaffController.getByUserIdToAdminEdit);
 router.post("/", auth, requireRole(["admin"]), upload.single("image"), StaffController.create);
-router.put("/:id", auth, requireRole(["admin"]), upload.single("image"), StaffController.update);
+router.put("/:userId", auth, requireRole(["admin"]), upload.single("image"), StaffController.update);
 router.delete("/:id", auth, requireRole(["admin"]), StaffController.delete);
 
 module.exports = router;
@@ -153,7 +153,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /api/staffs/{id}:
+ * /api/staffs/{userId}:
  *   put:
  *     summary: Update staff (include their account) information
  *     tags:

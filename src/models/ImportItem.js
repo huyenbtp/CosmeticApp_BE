@@ -12,9 +12,10 @@ const ImportItemSchema = new mongoose.Schema(
       required: true,
       ref: 'Product'
     },
-    batch_code: {
-      type: String,
+    batch_id: {
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
+      ref: 'InventoryBatch'
     },
     unit_price: {
       type: Number,
@@ -25,14 +26,6 @@ const ImportItemSchema = new mongoose.Schema(
       type: Number,
       default: 1,
       min: 1
-    },
-    mfg_date: {
-      type: Date,
-      default: null,
-    },
-    exp_date: {
-      type: Date,
-      default: null,
     },
   },
   {
@@ -46,6 +39,10 @@ ImportItemSchema.index({
 
 ImportItemSchema.index({
   product_id: 1,
+});
+
+ImportItemSchema.index({
+  batch_id: 1,
 });
 
 module.exports = mongoose.model("ImportItem", ImportItemSchema);

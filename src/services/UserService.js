@@ -19,11 +19,11 @@ class UserService {
       if (isCustomer) {                                                               //update customer
         profile = await Customer.findOne({ user_id: user._id }).session(session);
         if (!profile)
-          throw new Error("Customer not found").session(session);
+          throw new Error("Customer not found");
       } else {                                                                        //update staff
         profile = await Staff.findOne({ user_id: user._id }).session(session);
         if (!profile)
-          throw new Error("Staff not found").session(session);
+          throw new Error("Staff not found");
 
         // image logic
         if ("image" in updateData) {

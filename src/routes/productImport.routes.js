@@ -137,28 +137,19 @@ module.exports = router;
  *                 items:
  *                   type: object
  *                   required:
- *                     - product_id
+ *                     - batch_id
  *                     - unit_price
  *                     - quantity
  *                   properties:
- *                     product_id:
+ *                     batch_id:
  *                       type: string
  *                       example: "65a8b5c1c2a1e91234567891"
- *                     batch_code:
- *                       type: string
- *                       example: "LOT-0001"
  *                     unit_price:
  *                       type: number
  *                       example: 120000
  *                     quantity:
  *                       type: number
  *                       example: 10
- *                     mfg_date:
- *                       type: string
- *                       format: date-time
- *                     exp_date:
- *                       type: string
- *                       format: date-time
  *     responses:
  *       201:
  *         description: Product import created successfully
@@ -201,28 +192,19 @@ module.exports = router;
  *                 items:
  *                   type: object
  *                   required:
- *                     - product_id
+ *                     - batch_id
  *                     - unit_price
  *                     - quantity
  *                   properties:
- *                     product_id:
+ *                     batch_id:
  *                       type: string
  *                       example: "65a8b5c1c2a1e91234567891"
- *                     batch_code:
- *                       type: string
- *                       example: "LOT-0001"
  *                     unit_price:
  *                       type: number
  *                       example: 120000
  *                     quantity:
  *                       type: number
  *                       example: 10
- *                     mfg_date:
- *                       type: string
- *                       format: date-time
- *                     exp_date:
- *                       type: string
- *                       format: date-time
  *     responses:
  *       200:
  *         description: Product import updated successfully

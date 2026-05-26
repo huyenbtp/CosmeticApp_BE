@@ -240,6 +240,7 @@ const OrderService = {
 
       const orderCode = await generateCode({
         entity: "order",
+        withYearPrefix: true,
         pad: 6,
         session,
       });

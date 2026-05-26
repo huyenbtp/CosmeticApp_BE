@@ -15,7 +15,7 @@ const ProductImportService = {
       const { user_id, notes = "", status = "draft", type = "purchase", items } = data;
       /**
          * items: [
-         *   { product_id, batch_code, unit_price, quantity, mfg_date, exp_date }
+         *   { batch_id, unit_price, quantity }
          * ]
          */
 
@@ -39,6 +39,7 @@ const ProductImportService = {
 
       const importCode = await generateCode({
         entity: "productimport",
+        withYearPrefix: true,
         pad: 6,
         session,
       });
@@ -59,7 +60,12 @@ const ProductImportService = {
 
       /* ---------- TẠO IMPORT ITEMS ---------- */
       for (const item of items) {
-        const product = await Product.findById(item.product_id).session(session);
+        const batch = await InventoryBatch.findById(item.batch_id).session(session);
+        if (!batch) {
+          throw new Error("Batch not found");
+        }
+
+        const product = await Product.findById(batch.product_id).session(session);
         if (!product) {
           throw new Error("Product not found");
         }
@@ -67,12 +73,10 @@ const ProductImportService = {
         // create import item
         await ImportItem.create([{
           import_id: importId,
-          product_id: item.product_id,
-          batch_code: item.batch_code,
+          product_id: batch.product_id,
+          batch_id: item.batch_id,
           unit_price: item.unit_price,
           quantity: item.quantity,
-          mfg_date: item.mfg_date,
-          exp_date: item.exp_date
         }], { session });
       }
 
@@ -106,7 +110,7 @@ const ProductImportService = {
       const { notes = "", type = "purchase", items } = data;
       /**
          * items: [
-         *   { product_id, batch_code, unit_price, quantity, mfg_date, exp_date }
+         *   { batch_id, unit_price, quantity }
          * ]
          */
 
@@ -133,7 +137,12 @@ const ProductImportService = {
 
       /* ---------- TẠO IMPORT ITEMS ---------- */
       for (const item of items) {
-        const product = await Product.findById(item.product_id).session(session);
+        const batch = await InventoryBatch.findById(item.batch_id).session(session);
+        if (!batch) {
+          throw new Error("Batch not found");
+        }
+
+        const product = await Product.findById(batch.product_id).session(session);
         if (!product) {
           throw new Error("Product not found");
         }
@@ -141,12 +150,10 @@ const ProductImportService = {
         // create import item
         await ImportItem.create([{
           import_id: id,
-          product_id: item.product_id,
-          batch_code: item.batch_code,
+          product_id: batch.product_id,
+          batch_id: item.batch_id,
           unit_price: item.unit_price,
           quantity: item.quantity,
-          mfg_date: item.mfg_date,
-          exp_date: item.exp_date
         }], { session });
       }
 
@@ -189,6 +196,14 @@ const ProductImportService = {
         .session(session);
 
       for (const item of items) {
+        const batch = await InventoryBatch.findById(item.batch_id).session(session);
+        if (!batch) {
+          throw new Error("Batch not found");
+        }
+
+        batch.remaining_qty += item.quantity;
+        await batch.save({ session });
+
         const product = await Product.findById(item.product_id).session(session);
         if (!product) {
           throw new Error("Product not found");
@@ -200,22 +215,10 @@ const ProductImportService = {
         await product.save({ session });
       }
 
-      const newBatches = items.map((item) => ({
-        product_id: item.product_id,
-        import_item_id: item._id,
-        batch_code: item.batch_code,
-        mfg_date: item.mfg_date,
-        exp_date: item.exp_date,
-        imported_qty: item.quantity,
-        remaining_qty: item.quantity,
-      }));
-
-      const results = await InventoryBatch.insertMany(newBatches, { session });
-
       await session.commitTransaction();
       session.endSession();
 
-      return results.length;
+      return productImport;
     } catch (error) {
       await session.abortTransaction();
       session.endSession();
@@ -362,6 +365,7 @@ const ProductImportService = {
     }
 
     const details = await ImportItem.find({ import_id: id })
+      .populate("batch_id", "batch_number batch_code")
       .populate("product_id", "name sku image")
       .lean();
 
@@ -371,8 +375,9 @@ const ProductImportService = {
       ...rest,
       createdStaff: created_by,
       confirmedStaff: confirmed_by || null,
-      items: details.map(({ product_id, ...d }) => ({
+      items: details.map(({ batch_id, product_id, ...d }) => ({
         ...d,
+        batch: batch_id,
         product: product_id,
       })),
     };

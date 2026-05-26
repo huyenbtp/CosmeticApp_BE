@@ -1,9 +1,11 @@
 const mongoose = require("mongoose");
+const ExportItem = require("../models/ExportItem");
 const InventoryBatch = require("../models/InventoryBatch");
 const ImportItem = require("../models/ImportItem");
 const Product = require("../models/Product");
 const ProductImport = require("../models/ProductImport");
 const Staff = require("../models/Staff");
+const generateCode = require("../utils/codeGenerator");
 
 const InventoryBatchService = {
   async getInventoryBatches({
@@ -92,7 +94,7 @@ const InventoryBatchService = {
             { $limit: limit },
             {
               $project: {
-                import_item_id: 1,
+                batch_number: 1,
                 product: {
                   _id: "$product._id",
                   sku: "$product.sku",
@@ -102,7 +104,6 @@ const InventoryBatchService = {
                 batch_code: 1,
                 mfg_date: 1,
                 exp_date: 1,
-                imported_qty: 1,
                 remaining_qty: 1,
                 createdAt: 1,
               },
@@ -126,30 +127,93 @@ const InventoryBatchService = {
   },
 
   async getInventoryBatchById(id) {
-    const importDoc = await InventoryBatch.findById(id)
-      .populate("created_by", "full_name staff_code")
-      .populate("confirmed_by", "full_name staff_code")
-      .lean();
-
-    if (!importDoc) {
-      throw new Error("Import not found");
-    }
-
-    const details = await ImportItem.find({ import_id: id })
+    const batch = await InventoryBatch.findById(id)
       .populate("product_id", "name sku image")
       .lean();
 
-    const { created_by, confirmed_by, ...rest } = importDoc;
+    return batch;
+  },
 
-    return {
-      ...rest,
-      createdStaff: created_by,
-      confirmedStaff: confirmed_by || null,
-      items: details.map(({ product_id, ...d }) => ({
-        ...d,
-        product: product_id,
-      })),
-    };
+  async getBatchByBatchNumber(number) {
+    const batch = await InventoryBatch.findOne({ batch_number: number })
+      .populate("product_id", "sku name image")
+      .lean();
+
+    return batch ? {
+      ...batch,
+      product_id: batch.product_id._id,
+      product: batch.product_id,
+    } : null
+  },
+
+  async registerNewBatch(data) {
+    const { product_id, batch_code, mfg_date, exp_date } = data;
+
+    const product = await Product.findById(product_id);
+    if (!product) {
+      throw new Error("Product not found");
+    }
+
+    const batchNumber = await generateCode({
+      entity: "batch",
+      withYearPrefix: true,
+      pad: 6,
+    })
+
+    const newBatch = await InventoryBatch.create({
+      batch_number: batchNumber,
+      product_id,
+      batch_code,
+      mfg_date,
+      exp_date,
+      remaining_qty: 0,
+    });
+
+    return newBatch;
+  },
+
+  async update(id, updateData) {
+    const batch = await InventoryBatch.findById(id);
+    if (!batch) {
+      throw new Error("Batch not found");
+    }
+
+    const hasImport = await ImportItem.exists({
+      batch_id: id,
+    });
+
+    const hasExport = await ExportItem.exists({
+      batch_id: id,
+    });
+
+    if (hasImport || hasExport) {
+      throw new Error("Batch already used");
+    }
+
+    Object.assign(batch, updateData);
+    await batch.save();
+    return batch;
+  },
+
+  async delete(id) {
+    const batch = await InventoryBatch.findById(id);
+    if (!batch) {
+      throw new Error("Batch not found");
+    }
+
+    const hasImport = await ImportItem.exists({
+      batch_id: id,
+    });
+
+    const hasExport = await ExportItem.exists({
+      batch_id: id,
+    });
+
+    if (hasImport || hasExport) {
+      throw new Error("Batch already used");
+    }
+
+    return await batch.deleteOne();
   },
 }
 

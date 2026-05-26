@@ -40,6 +40,7 @@ const ProductExportService = {
 
       const exportCode = await generateCode({
         entity: "productexport",
+        withYearPrefix: true,
         pad: 6,
         session,
       });
@@ -112,6 +113,7 @@ const ProductExportService = {
 
     const exportCode = await generateCode({
       entity: "productexport",
+      withYearPrefix: true,
       pad: 6,
       session,
     });

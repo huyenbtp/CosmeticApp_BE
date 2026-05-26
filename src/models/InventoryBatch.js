@@ -2,18 +2,18 @@ const mongoose = require("mongoose");
 
 const InventoryBatchSchema = new mongoose.Schema(
   {
+    batch_number: {
+      type: String,       //số lô do hệ thống auto-generate
+      required: true,     //sử dụng trong nội bộ hệ thống
+      unique: true        //không trùng
+    },
     product_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
       required: true,
     },
-    import_item_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "ImportItem",
-      required: true
-    },
     batch_code: {
-      type: String,
+      type: String,       //mã lô nhận được từ nhà cung cấp
       required: true,     //cho phép trùng batch code
     },
     mfg_date: {
@@ -24,14 +24,10 @@ const InventoryBatchSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    imported_qty: {
-      type: Number,
-      required: true,
-      min: 0
-    },
     remaining_qty: {
       type: Number,
       required: true,
+      default: 0,
       min: 0,
     },
   },

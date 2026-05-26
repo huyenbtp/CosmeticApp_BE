@@ -244,20 +244,20 @@ const StaffService = {
       console.error("Send mail failed:", e.message);
     }
 
-    if (!staff) throw new Error("Staff creation failed");
-    return staff;
+    if (!user) throw new Error("Staff creation failed");
+    return user;
   },
 
-  async update(id, updateData) {
+  async update(user_id, updateData) {
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-      const staff = await Staff.findById(id).session(session);
+      const staff = await Staff.findOne({ user_id }).session(session);
       if (!staff)
-        throw new Error("Staff not found").session(session);
+        throw new Error("Staff not found");
 
-      const user = await User.findById(staff.user_id).session(session);
+      const user = await User.findById(user_id).session(session);
       if (!user)
         throw new Error("User not found");
 
@@ -304,7 +304,7 @@ const StaffService = {
 
       await session.commitTransaction();
 
-      return staff;
+      return user;
 
     } catch (e) {
       await session.abortTransaction();

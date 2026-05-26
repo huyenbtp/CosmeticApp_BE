@@ -12,8 +12,8 @@ const ProductImportController = {
       }
 
       for (const item of items) {
-        if (!item.product_id) {
-          return res.status(400).json({ message: "product_id is required" });
+        if (!item.batch_id) {
+          return res.status(400).json({ message: "batch_id is required" });
         }
         if (item.unit_price === undefined || item.unit_price < 0) {
           return res.status(400).json({ message: "unit_price must be >= 0" });
@@ -56,7 +56,7 @@ const ProductImportController = {
 
       const result = await ProductImportService.confirmImport(user_id, import_id);
 
-      res.json({ newBatchesCount: result });
+      res.json(result);
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
