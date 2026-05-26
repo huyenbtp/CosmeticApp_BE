@@ -44,11 +44,11 @@ class SimilarityBuilderService {
           .add(productId);
       });
 
-      // ITEM FREQUENCY
+      // ITEM FREQUENCY (số lần từng item được mua)
       // Freq(i)
       const itemFrequency = new Map();
 
-      // CO-OCCURRENCE
+      // CO-OCCURRENCE (số lần mỗi bộ 2 item được mua chung)
       // Freq(i ∩ j)
       const coOccurrence = new Map();
 
@@ -95,6 +95,7 @@ class SimilarityBuilderService {
         const freqB = itemFrequency.get(itemB) || 1;
 
         // CONDITIONAL PROBABILITY
+        // (số lần 2 item được mua chung) / (số lần item A được mua x số lần item B được mua lũy thừa alpha)
         const similarityScore =
           intersectionFreq / (freqA * Math.pow(freqB, ALPHA));
 

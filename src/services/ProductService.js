@@ -153,6 +153,189 @@ const ProductService = {
       }
     };
   },
+  async getProductFilters({
+    q = "",
+    category_slug,
+    brand_id,
+  }) {
+    const filter = {
+      status: "published",
+    };
+
+    /* ---------- CATEGORY ---------- */
+    if (category_slug) {
+      const category = await Category.findOne({ slug: category_slug });
+
+      if (!category) {
+        return {
+          minPrice: 0,
+          maxPrice: 0,
+          brands: [],
+          tags: [],
+          skinTypes: [],
+        };
+      }
+
+      const categoryIds = await CategoryService.getAllChildCategoryIds(category._id);
+
+      filter.category_id = {
+        $in: categoryIds.map((id) => new mongoose.Types.ObjectId(id)),
+      };
+    }
+
+    /* ---------- BRAND ---------- */
+    if (brand_id) {
+      filter.brand_id = new mongoose.Types.ObjectId(brand_id);
+    }
+
+    /* ---------- SEARCH ---------- */
+    if (q) {
+      const regex = new RegExp(q, "i");
+      filter.$or = [
+        { name: regex },
+        { sku: regex },
+      ];
+    }
+
+    const pipeline = [
+      { $match: filter },
+      {
+        $facet: {
+          /* ---------- PRICE RANGE ---------- */
+          priceRange: [
+            {
+              $group: {
+                _id: null,
+                minPrice: {
+                  $min: "$selling_price",
+                },
+                maxPrice: {
+                  $max: "$selling_price",
+                },
+              },
+            },
+          ],
+
+          /* ---------- BRANDS ---------- */
+          brands: [
+            {
+              $group: {
+                _id: "$brand_id",
+                count: { $sum: 1 },
+              },
+            },
+            {
+              $lookup: {
+                from: "brands",
+                localField: "_id",
+                foreignField: "_id",
+                as: "brand",
+              },
+            },
+            { $unwind: "$brand", },
+            {
+              $project: {
+                _id: "$brand._id",
+                name: "$brand.name",
+                logo: "$brand.logo",
+                count: 1,
+              },
+            },
+            {
+              $sort: {
+                name: 1,
+              },
+            },
+          ],
+
+          /* ---------- TAGS ---------- */
+          tags: [
+            {
+              $lookup: {
+                from: "producttags",
+                localField: "_id",
+                foreignField: "product_id",
+                as: "productTags",
+              },
+            },
+            { $unwind: "$productTags", },
+            {
+              $lookup: {
+                from: "tags",
+                localField: "productTags.tag_id",
+                foreignField: "_id",
+                as: "tag",
+              },
+            },
+            { $unwind: "$tag", },
+            {
+              $group: {
+                _id: "$tag._id",
+                name: { $first: "$tag.name" },
+                count: { $sum: 1 },
+              },
+            },
+            {
+              $sort: {
+                count: -1,
+              },
+            },
+          ],
+
+          /* ---------- SKIN TYPES ---------- */
+          skinTypes: [
+            {
+              $lookup: {
+                from: "productskintypes",
+                localField: "_id",
+                foreignField: "product_id",
+                as: "productSkinTypes",
+              },
+            },
+            { $unwind: "$productSkinTypes", },
+            {
+              $lookup: {
+                from: "skintypes",
+                localField: "productSkinTypes.skin_type_id",
+                foreignField: "_id",
+                as: "skinType",
+              },
+            },
+            { $unwind: "$skinType", },
+            {
+              $group: {
+                _id: "$skinType._id",
+                name: { $first: "$skinType.name" },
+                count: { $sum: 1 },
+              },
+            },
+            {
+              $sort: {
+                count: -1,
+              },
+            },
+          ],
+        },
+      },
+    ];
+
+    const result = await Product.aggregate(pipeline);
+
+    const priceRange =
+      result[0].priceRange[0] || {
+        minPrice: 0,
+        maxPrice: 0,
+      };
+
+    return {
+      minPrice: priceRange.minPrice,
+      maxPrice: priceRange.maxPrice,
+
+      brands: result[0].brands,
+      tags: result[0].tags,
+      skinTypes: result[0].skinTypes,
+    };
+  },
 
   async getProductsInfinite({               //for customer
     q = "",
@@ -175,8 +358,8 @@ const ProductService = {
 
       if (!category) {
         return {
-          data: [],
-          pagination: { total: 0, page, limit },
+          results: [],
+          hasMore: false,
         };
       }
 

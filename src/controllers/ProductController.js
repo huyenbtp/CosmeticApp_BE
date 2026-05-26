@@ -34,8 +34,8 @@ class ProductController {
         q,
         category_slug,
         brand_id,
-        minPrice,
-        maxPrice,
+        minPrice: minPrice !== undefined ? Number(minPrice) : undefined,
+        maxPrice: maxPrice !== undefined ? Number(maxPrice) : undefined,
       });
 
       res.json(result);
@@ -84,6 +84,15 @@ class ProductController {
   async getStats(req, res) {
     try {
       const result = await ProductService.getProductStats();
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+
+  async getFilters(req, res) {
+    try {
+      const result = await ProductService.getProductFilters(req.query);
       res.json(result);
     } catch (error) {
       res.status(500).json({ message: error.message });

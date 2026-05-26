@@ -10,6 +10,7 @@ router.post("/", auth, requireRole(["admin"]), upload.single("image"), ProductCo
 router.get("/pagination", auth, requireRole(["admin"]), ProductController.getProductsPaginated);
 router.get("/infinite", auth, ProductController.getProductsInfinite);
 router.get("/stats", auth, ProductController.getStats);
+router.get("/filters", auth, ProductController.getFilters);
 router.get("/:id", auth, ProductController.getByIdAdmin);
 router.get("/:id/customer", auth, ProductController.getByIdCustomer);
 router.get("/import-item/:sku", auth, ProductController.getImportProductBySKU);
@@ -37,6 +38,18 @@ module.exports = router;
  *         name: q
  *         schema: { type: string }
  *         description: Search query (name or sku)
+ *       - in: query
+ *         name: category_slug
+ *         schema: { type: string }
+ *       - in: query
+ *         name: brand_id
+ *         schema: { type: string }
+ *       - in: query
+ *         name: minPrice
+ *         schema: { type: number }
+ *       - in: query
+ *         name: maxPrice
+ *         schema: { type: number }
  *     responses:
  *       200:
  *         description: Product list with infinite scroll
@@ -66,7 +79,6 @@ module.exports = router;
  *       - in: query
  *         name: brand_id
  *         schema: { type: string }
- *         description: Fields to search by
  *       - in: query
  *         name: minStock
  *         schema: { type: number }
@@ -120,6 +132,29 @@ module.exports = router;
  *                       type: number
  */
 
+/**
+ * @openapi
+ * /api/products/filters:
+ *   get:
+ *     summary: Get initial filter for customer to search products
+ *     tags:
+ *       - Products
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema: { type: string }
+ *         description: Search query
+ *       - in: query
+ *         name: category_slug
+ *         schema: { type: string }
+ *       - in: query
+ *         name: brand_id
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Initial values for product filters
+ */
+ 
 /**
  * @openapi
  * /api/products/{id}:

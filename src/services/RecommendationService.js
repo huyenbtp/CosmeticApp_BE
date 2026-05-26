@@ -1,3 +1,4 @@
+const Order = require("../models/Order");
 const OrderItem = require("../models/OrderItem");
 const CartItem = require("../models/CartItem");
 const WishlistItem = require("../models/WishlistItem");
@@ -27,17 +28,19 @@ const RecommendationService = {
     };
 
     // PURCHASE HISTORY
-    const orderItems = await OrderItem.find()
-      .populate({
-        path: "order_id",
-        match: {
-          user_id: userId,
-        },
-        select: "_id",
-      })
-      .select("product_id");
+    const orders = await Order.find({
+      user_id: userId,
+    })
+    .select("_id")
+    .lean();
 
-    let purchasedItemIds = [];
+    const orderIds = orders.map(o => o._id);
+
+    const orderItems = await OrderItem.find({
+      order_id: { $in: orderIds }
+    }).lean();
+
+    const purchasedItemIds = new Set();
 
     orderItems.forEach((item) => {
       if (item.order_id) {
@@ -45,12 +48,12 @@ const RecommendationService = {
           item.product_id,
           WEIGHTS.purchase
         );
-        purchasedItemIds = [...purchasedItemIds, item.product_id];
+        purchasedItemIds.add(item.product_id.toString());
       }
     });
 
     // CART
-    const cartItems = await CartItem.find({ user_id: userId, }).select("product_id");
+    const cartItems = await CartItem.find({ user_id: userId, }).select("product_id").lean();
 
     cartItems.forEach((item) => {
       addWeight(
@@ -60,7 +63,7 @@ const RecommendationService = {
     });
 
     // WISHLIST
-    const wishlistItems = await WishlistItem.find({ user_id: userId, }).select("product_id");
+    const wishlistItems = await WishlistItem.find({ user_id: userId, }).select("product_id").lean();
 
     wishlistItems.forEach((item) => {
       addWeight(
@@ -73,7 +76,8 @@ const RecommendationService = {
     const viewedItems = await ProductViewHistory.find({ user_id: userId, })
       .sort({ last_viewed_at: -1, })
       .limit(20)
-      .select("product_id");
+      .select("product_id")
+      .lean();
 
     viewedItems.forEach((item) => {
       addWeight(
@@ -84,7 +88,7 @@ const RecommendationService = {
 
     // COLD START
     if (basket.size === 0) {
-      return this.getNewestProducts(10);
+      return this.getNewestProducts(limit);
     }
 
     // LOAD SIMILARITIES
@@ -92,7 +96,7 @@ const RecommendationService = {
 
     const similarities = await ItemSimilarity.find({
       item_id: { $in: productIds, },
-    });
+    }).lean();
 
     // CALCULATE SCORES
     const scores = new Map();
@@ -107,7 +111,7 @@ const RecommendationService = {
           sim.similar_item_id.toString();
 
         // skip purchased items
-        if (purchasedItemIds.includes(targetId)) {
+        if (purchasedItemIds.has(targetId)) {
           return;
         }
 
@@ -119,21 +123,43 @@ const RecommendationService = {
       });
     });
 
-    if (scores.size < 10) {
-      return this.getNewestProducts(10);
+    /*
+    if (scores.size < limit) {
+      return this.getNewestProducts(limit);
     }
+    */
+    //console.log(scores)
 
     // SORT TOP-N PRODUCTS
     const sortedIds = [...scores.entries()]
       .sort((a, b) => b[1] - a[1])
-      .slice(0, limit)
       .map(([id]) => id);
+
+    let finalIds = [...sortedIds];
+
+    // fallback fill
+    if (finalIds.length < limit) {
+      const fallbackProducts = await this.getNewestProducts(limit * 2);
+
+      fallbackProducts.forEach((p) => {
+        const id = p._id.toString();
+
+        if (!finalIds.includes(id) && !purchasedItemIds.has(id)) {
+          finalIds.push(id);
+        }
+      });
+    }
+
+    // final limit
+    finalIds = finalIds.slice(0, limit);
 
     // LOAD PRODUCTS
     const products = await Product.find({
-      _id: { $in: sortedIds, },
+      _id: { $in: finalIds, },
       status: "published",
-    }).populate("brand_id", "name");
+    })
+      .populate("brand_id", "name")
+      .lean();
 
     // preserve ranking
     const productMap = new Map();
@@ -148,11 +174,12 @@ const RecommendationService = {
           image: p.image,
           avg_rating: p.avg_rating,
           brand: p.brand_id.name,
+          score: scores.get(p._id.toString()) || 0
         }
       );
     });
 
-    return sortedIds
+    return finalIds
       .map((id) => productMap.get(id))
       .filter(Boolean);
   },
