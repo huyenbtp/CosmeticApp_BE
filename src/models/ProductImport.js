@@ -47,7 +47,7 @@ const ProductImportSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["purchase", "customer_return"],
+      enum: ["purchase", "returned_order"],
       default: "purchase"
     },
   },

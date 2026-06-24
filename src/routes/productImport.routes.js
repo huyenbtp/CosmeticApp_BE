@@ -55,7 +55,7 @@ module.exports = router;
  *         name: type
  *         schema:
  *           type: string
- *           enum: [purchase, customer_return]
+ *           enum: [purchase, returned_order]
  *     responses:
  *       200:
  *         description: Product import list with pagination

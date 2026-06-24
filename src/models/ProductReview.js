@@ -12,9 +12,14 @@ const ProductReviewSchema = new mongoose.Schema(
       required: true,
       ref: 'User',
     },
+    user_full_name: {
+      type: String,
+      required: true,
+    },
     order_item_id: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
+      unique: true,
       ref: 'OrderItem',
     },
     rating: {
@@ -36,5 +41,15 @@ const ProductReviewSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+ProductReviewSchema.index({
+  product_id: 1,
+  rating: 1,
+});
+
+ProductReviewSchema.index({
+  user_id: 1,
+});
+
 
 module.exports = mongoose.model("ProductReview", ProductReviewSchema);
