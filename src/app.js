@@ -13,6 +13,7 @@ const brandRoutes = require("./routes/brand.routes.js");
 const cartItemRoutes = require("./routes/cartItem.routes.js");
 const categoryRoutes = require("./routes/category.routes.js");
 const customerRoutes = require("./routes/customer.routes.js");
+const dashboardRoutes = require("./routes/dashboard.routes.js");
 const discountCodeRoutes = require("./routes/discountCode.routes.js");
 const importItemRoutes = require("./routes/importItem.routes.js");
 const inventoryBatchRoutes = require("./routes/inventoryBatch.routes.js");
@@ -66,7 +67,7 @@ app.use("/api/tags", tagRoutes);
 app.use("/api/user-addresses", userAddressRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/wishlist-items", wishlistItemRoutes);
-
+app.use("/api/dashboard", dashboardRoutes);
 
 // health check
 app.get("/health", (req, res) => {
