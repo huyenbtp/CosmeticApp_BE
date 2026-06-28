@@ -31,6 +31,8 @@ const ProductReviewSchema = new mongoose.Schema(
     comment: {
       type: String,
       default: "",
+      minlength: 20,
+      maxlength: 255,
     },
     anonymous: {
       type: Boolean,
