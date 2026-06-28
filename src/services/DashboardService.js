@@ -190,7 +190,7 @@ const DashboardService = {
         },
       },
       { $unwind: "$brand" },
-      { $project: { _id: 0, name: "$brand.name", value: 1 } },
+      { $project: { _id: 0, name: "$brand.name", logo: "$brand.logo", value: 1 } },
     ]);
     return rows;
   },

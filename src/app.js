@@ -28,6 +28,7 @@ const recommendationRoutes = require("./routes/recommendation.routes.js");
 const roleRoutes = require("./routes/role.routes.js");
 const staffRoutes = require("./routes/staff.routes.js");
 const skinTypeRoutes = require("./routes/skinType.routes.js");
+const stockReportRoutes = require("./routes/stockReport.routes.js")
 const tagRoutes = require("./routes/tag.routes.js");
 const userAddressRoutes = require("./routes/userAddress.routes.js");
 const userRoutes = require("./routes/user.routes.js");
@@ -61,6 +62,7 @@ app.use("/api/product-view-history", productViewHistoryRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/product-exports", productExportRoutes);
 app.use("/api/product-imports", productImportRoutes);
+app.use("/api/stock-report", stockReportRoutes);
 app.use("/api/recommendations", recommendationRoutes);
 app.use("/api/roles", roleRoutes);
 app.use("/api/staffs", staffRoutes);
