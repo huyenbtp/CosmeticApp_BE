@@ -9,6 +9,7 @@ require("./jobs/rebuildSimilarity.job");
 const SimilarityBuilderService = require("./services/SimilarityBuilderService");
 
 const authRoutes = require("./routes/auth.routes.js");
+const analyticsRoutes = require("./routes/analytics.routes.js");
 const brandRoutes = require("./routes/brand.routes.js");
 const cartItemRoutes = require("./routes/cartItem.routes.js");
 const categoryRoutes = require("./routes/category.routes.js");
@@ -51,6 +52,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/cart-items", cartItemRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/discount-codes", discountCodeRoutes);
+app.use("/api/analytics", analyticsRoutes);
 app.use("/api/import-items", importItemRoutes);
 app.use("/api/inventory-batches", inventoryBatchRoutes);
 app.use("/api/orders", orderRoutes);
